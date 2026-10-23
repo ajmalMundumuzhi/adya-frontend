@@ -1,9 +1,16 @@
-import './App.css'
+import { Route, Routes } from 'react-router-dom';
+import MainLayout from './components/layout/MainLayout';
+import PlaceholderPage from './pages/PlaceholderPage';
+import RoutePlaceholder from './pages/RoutePlaceholder';
 
-function App() {
+export default function App() {
   return (
-    <h1>Hello </h1>
-  )
+    <Routes>
+      <Route element={<MainLayout />}>
+        <Route index element={<PlaceholderPage title="Home" showPreview />} />
+        <Route path="cart" element={<PlaceholderPage title="Cart" showPreview />} />
+        <Route path="*" element={<RoutePlaceholder />} />
+      </Route>
+    </Routes>
+  );
 }
-
-export default App
