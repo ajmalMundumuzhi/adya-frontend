@@ -1,13 +1,12 @@
 export const SITE = {
-  name: 'Suvastra',
-  tagline: 'Heritage Sarees',
-  description:
-    'Handpicked handloom sarees woven by master artisans across India, from Banarasi brocades to Kanjivaram silks, carried to your doorstep around the world.',
+  name: 'ADYA',
+  tagline: 'Sarees for Every Story',
+  description: 'A considered edit of Indian-inspired sarees for celebrations, everyday elegance and meaningful moments.',
   phone: '+91 98765 43210',
-  email: 'hello@suvastra.example',
+  email: 'hello@adya.example',
 };
 
 export const ANNOUNCEMENTS = [
-  { id: 'promo', text: 'New handloom arrivals every Friday. Claim your favourite before it is gone.' },
-  { id: 'shipping', text: 'Free international shipping on orders above', amountInr: 25000 },
+  { id: 'promo', text: 'Discover thoughtful drapes for every kind of occasion.' },
+  { id: 'shipping', text: 'Explore international delivery options at checkout.' },
 ];

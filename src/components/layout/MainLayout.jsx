@@ -19,9 +19,11 @@ export default function MainLayout() {
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
-      <AnnouncementBar messages={ANNOUNCEMENTS} />
-      <Header menuOpen={menuOpen} onOpenMenu={openMenu} />
-      <MobileNavigation open={menuOpen} onClose={closeMenu} />
+      <div className="sticky top-0 z-50">
+        <AnnouncementBar messages={ANNOUNCEMENTS} />
+        <Header menuOpen={menuOpen} onOpenMenu={openMenu} />
+        <MobileNavigation open={menuOpen} onClose={closeMenu} />
+      </div>
       <main id="main-content" className="flex-1">
         <Outlet />
       </main>

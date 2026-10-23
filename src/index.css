@@ -53,9 +53,11 @@
     box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
   }
 
-  .glass-header {
-    @apply border-b border-burgundy/40 bg-ivory-100/70 text-ink shadow-glass backdrop-blur-xl backdrop-saturate-150;
-  }
+  
+.glass-header {
+  @apply border-b border-burgundy/20 bg-ivory-50 text-ink shadow-glass;
+}
+
 
   .glass-panel {
     @apply border border-burgundy/15 bg-ivory-50/70 shadow-glass backdrop-blur-xl;

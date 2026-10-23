@@ -12,7 +12,7 @@ export default function Header({ menuOpen, onOpenMenu }) {
   const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   return (
-    <header className="glass-header sticky top-0 z-40">
+    <header className="glass-header sticky top-0 z-40 bg-ivory-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-2 sm:h-20 lg:grid lg:h-24 lg:grid-cols-[1fr_auto_1fr] lg:gap-6">
           <div className="flex items-center lg:justify-self-start">
@@ -37,7 +37,9 @@ export default function Header({ menuOpen, onOpenMenu }) {
           <div className="lg:justify-self-end">
             <HeaderActions
               searchOpen={searchOpen}
-              onToggleSearch={() => setSearchOpen((current) => !current)}
+              onToggleSearch={() =>
+                setSearchOpen((current) => !current)
+              }
             />
           </div>
         </div>
@@ -46,6 +48,7 @@ export default function Header({ menuOpen, onOpenMenu }) {
           <DesktopNav />
         </div>
       </div>
+
       <SearchPanel open={searchOpen} onClose={closeSearch} />
     </header>
   );

@@ -1,0 +1,1915 @@
+﻿
+
+========== FILE: src\App.css ==========
+
+@import "tailwindcss";
+
+
+========== FILE: src\App.jsx ==========
+
+import { Route, Routes } from 'react-router-dom';
+import MainLayout from './components/layout/MainLayout';
+import PlaceholderPage from './pages/PlaceholderPage';
+import RoutePlaceholder from './pages/RoutePlaceholder';
+
+export default function App() {
+  return (
+    <Routes>
+      <Route element={<MainLayout />}>
+        <Route index element={<PlaceholderPage title="Home" showPreview />} />
+        <Route path="cart" element={<PlaceholderPage title="Cart" showPreview />} />
+        <Route path="*" element={<RoutePlaceholder />} />
+      </Route>
+    </Routes>
+  );
+}
+
+
+========== FILE: src\index.css ==========
+
+
+@import "tailwindcss";
+
+:root {
+  --color-gold: #b8923a;
+  --color-ivory-50: #fffbf2;
+  --color-ivory-100: #fbf5e9;
+  --color-burgundy: #6b0f24;
+  --color-burgundy-900: #3a0612;
+  --color-ink: #29231f;
+  --shadow-glass: 0 8px 32px rgba(41, 35, 31, 0.08);
+}
+
+@theme {
+  --color-gold: #b8923a;
+  --color-ivory-50: #fffbf2;
+  --color-ivory-100: #fbf5e9;
+  --color-burgundy: #6b0f24;
+  --color-burgundy-900: #3a0612;
+  --color-ink: #29231f;
+  --shadow-glass: 0 8px 32px rgba(41, 35, 31, 0.08);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply min-w-[320px] bg-ivory-100 font-sans text-ink antialiased;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .page-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -10;
+    background:
+      radial-gradient(circle at 10% 6%, rgba(107, 15, 36, 0.2), transparent 38%),
+      radial-gradient(circle at 90% 18%, rgba(184, 146, 58, 0.26), transparent 36%),
+      radial-gradient(circle at 50% 100%, rgba(107, 15, 36, 0.12), transparent 46%),
+      var(--color-ivory-100);
+  }
+
+  .glass-announcement {
+    @apply border-b border-gold/30 bg-burgundy-900/85 text-ivory-100 backdrop-blur-md;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-header {
+    @apply border-b border-burgundy/40 bg-ivory-100/70 text-ink shadow-glass backdrop-blur-xl backdrop-saturate-150;
+  }
+
+  .glass-panel {
+    @apply border border-burgundy/15 bg-ivory-50/70 shadow-glass backdrop-blur-xl;
+  }
+
+  .glass-dark {
+    @apply border border-ivory-100/15 bg-ivory-100/5 backdrop-blur-md;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  .icon-btn {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-burgundy/10;
+  }
+
+  .badge {
+    @apply absolute -right-2 -top-2 inline-flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-gold px-1 text-[11px] font-semibold leading-none text-ink;
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-md focus:bg-burgundy focus:px-4 focus:py-2 focus:text-ivory-100;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-header {
+    background-color: rgba(251, 245, 233, 0.97);
+  }
+
+  .glass-announcement {
+    background-color: rgba(58, 6, 18, 0.97);
+  }
+
+  .glass-panel {
+    background-color: rgba(255, 251, 242, 0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+
+========== FILE: src\main.jsx ==========
+
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import CartProvider from './context/CartProvider';
+import CurrencyProvider from './context/CurrencyProvider';
+import './index.css';
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <BrowserRouter>
+      <CurrencyProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </CurrencyProvider>
+    </BrowserRouter>
+  </StrictMode>,
+);
+
+
+========== FILE: src\components\common\Button.jsx ==========
+
+
+
+========== FILE: src\components\common\CountryModal.jsx ==========
+
+import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { Check, X } from 'lucide-react';
+import useCurrency from '../../hooks/useCurrency';
+import useScrollLock from '../../hooks/useScrollLock';
+import { RATES_DISCLAIMER } from '../../config/currency';
+
+export default function CountryModal({ onClose }) {
+  const { country, countries, setCountryCode } = useCurrency();
+  const panelRef = useRef(null);
+  useScrollLock(true);
+
+  useEffect(() => {
+    const selected = panelRef.current?.querySelector('[aria-checked="true"]');
+    selected?.focus();
+  }, []);
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+    if (event.key !== 'Tab' || !panelRef.current) return;
+    const focusable = panelRef.current.querySelectorAll('button:not([disabled])');
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  const handleSelect = (code) => {
+    setCountryCode(code);
+    onClose();
+  };
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[60] flex items-end justify-center p-3 sm:items-center sm:p-6"
+      onKeyDown={handleKeyDown}
+    >
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-label="Close country selector"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-ink/60 backdrop-blur-sm"
+      />
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="country-modal-title"
+        className="relative flex max-h-[88vh] w-full max-w-md animate-fade-in flex-col overflow-hidden rounded-2xl border border-gold/50 bg-ivory-100/95 shadow-glass backdrop-blur-xl"
+      >
+        <div className="flex items-start justify-between gap-4 px-5 pb-3 pt-5">
+          <div>
+            <h2 id="country-modal-title" className="font-display text-2xl font-semibold text-burgundy">
+              Choose your destination
+            </h2>
+            <p className="mt-1 text-sm text-ink/70">Prices will switch to your destination currency.</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" className="icon-btn -mr-2 -mt-1 shrink-0">
+            <X size={20} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div role="radiogroup" aria-labelledby="country-modal-title" className="overflow-y-auto px-3 pb-3">
+          {countries.map((option) => {
+            const selected = option.code === country.code;
+            return (
+              <button
+                key={option.code}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => handleSelect(option.code)}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${
+                  selected ? 'bg-burgundy/10' : 'hover:bg-burgundy/5'
+                }`}
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-burgundy text-xs font-semibold tracking-wider text-gold-light">
+                  {option.code}
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-base font-medium text-ink">{option.name}</span>
+                  <span className="text-xs text-ink/60">
+                    {option.currency} &middot; {option.locale}
+                  </span>
+                </span>
+                {selected && <Check size={20} className="shrink-0 text-burgundy" aria-hidden="true" />}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="border-t border-burgundy/10 px-5 py-3 text-xs leading-relaxed text-ink/60">
+          {RATES_DISCLAIMER}
+        </p>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+
+========== FILE: src\components\common\CountrySelector.jsx ==========
+
+import { useCallback, useRef, useState } from 'react';
+import { ChevronDown, Globe } from 'lucide-react';
+import useCurrency from '../../hooks/useCurrency';
+import CountryModal from './CountryModal';
+
+const TRIGGER_STYLES = {
+  header:
+    'h-10 gap-1.5 rounded-full border border-burgundy/25 bg-white/40 px-3 text-xs font-semibold tracking-wide text-ink hover:bg-white/70',
+  drawer:
+    'w-full justify-between gap-3 rounded-xl border border-burgundy/20 bg-white/50 px-4 py-3 text-sm font-medium text-ink hover:bg-white/80',
+  footer:
+    'gap-2 rounded-full border border-ivory-100/30 bg-ivory-100/10 px-4 py-3 text-sm text-ivory-100 hover:bg-ivory-100/20',
+};
+
+export default function CountrySelector({ variant = 'header' }) {
+  const { country } = useCurrency();
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef(null);
+
+  const close = useCallback(() => {
+    setOpen(false);
+    triggerRef.current?.focus();
+  }, []);
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={`Change destination and currency. Current: ${country.name}, ${country.currency}`}
+        onClick={() => setOpen(true)}
+        className={`inline-flex items-center transition-colors ${TRIGGER_STYLES[variant]}`}
+      >
+        <span className="inline-flex items-center gap-2">
+          <Globe size={16} aria-hidden="true" />
+          {variant === 'header' ? (
+            <span>
+              {country.code}
+              <span className="hidden text-ink/60 sm:inline"> &middot; {country.currency}</span>
+            </span>
+          ) : (
+            <span>
+              {country.name} ({country.currency})
+            </span>
+          )}
+        </span>
+        <ChevronDown size={14} aria-hidden="true" />
+      </button>
+      {open && <CountryModal onClose={close} />}
+    </>
+  );
+}
+
+
+========== FILE: src\components\common\Logo.jsx ==========
+
+import { Link } from 'react-router-dom';
+import { SITE } from '../../config/site';
+
+export default function Logo({ tone = 'dark', onClick }) {
+  const light = tone === 'light';
+
+  return (
+    <Link
+      to="/"
+      onClick={onClick}
+      aria-label={`${SITE.name} home`}
+      className="inline-flex items-center gap-2.5"
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-burgundy font-display text-xl italic text-gold-light ring-1 ring-gold/60 sm:h-11 sm:w-11 sm:text-2xl">
+        {SITE.name.charAt(0)}
+      </span>
+      <span className="flex flex-col leading-none">
+        <span
+          className={`font-display text-2xl font-semibold tracking-wide sm:text-[2rem] ${
+            light ? 'text-ivory-100' : 'text-burgundy'
+          }`}
+        >
+          {SITE.name}
+        </span>
+        <span
+          className={`mt-1 hidden items-center gap-2 text-[10px] font-medium uppercase tracking-[0.3em] sm:flex ${
+            light ? 'text-gold-light' : 'text-ink/70'
+          }`}
+        >
+          <span aria-hidden="true" className="h-px w-5 bg-gold" />
+          {SITE.tagline}
+          <span aria-hidden="true" className="h-px w-5 bg-gold" />
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+
+========== FILE: src\components\common\NewsletterForm.jsx ==========
+
+import { useId, useState } from 'react';
+import { Send } from 'lucide-react';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+const MESSAGES = {
+  empty: 'Please enter your email address.',
+  invalid: 'Please enter a valid email address.',
+  success:
+    'Thank you. Your email looks valid. Mailing list signup is not connected yet, so nothing was saved.',
+};
+
+export default function NewsletterForm({ className = '' }) {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle');
+  const inputId = useId();
+  const messageId = useId();
+  const hasError = status === 'empty' || status === 'invalid';
+
+  const handleChange = (event) => {
+    setEmail(event.target.value);
+    if (status !== 'idle') setStatus('idle');
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const value = email.trim();
+    if (!value) {
+      setStatus('empty');
+      return;
+    }
+    if (!EMAIL_PATTERN.test(value)) {
+      setStatus('invalid');
+      return;
+    }
+    setStatus('success');
+    setEmail('');
+  };
+
+  return (
+    <form noValidate onSubmit={handleSubmit} className={className}>
+      <label htmlFor={inputId} className="sr-only">
+        Email address
+      </label>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <input
+          id={inputId}
+          type="email"
+          name="email"
+          autoComplete="email"
+          value={email}
+          onChange={handleChange}
+          placeholder="Your email address"
+          aria-invalid={hasError}
+          aria-describedby={status === 'idle' ? undefined : messageId}
+          className="h-12 min-w-0 flex-1 rounded-full border border-ivory-100/30 bg-ivory-100/10 px-5 text-base text-ivory-100 placeholder:text-ivory-100/60"
+        />
+        <button
+          type="submit"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gold px-6 text-sm font-semibold uppercase tracking-wider text-ink transition-colors hover:bg-gold-light"
+        >
+          Subscribe
+          <Send size={16} aria-hidden="true" />
+        </button>
+      </div>
+      <p
+        id={messageId}
+        role={hasError ? 'alert' : 'status'}
+        className={`mt-3 min-h-[1.25rem] text-sm ${hasError ? 'text-[#ffb4a8]' : 'text-gold-light'}`}
+      >
+        {status === 'idle' ? '' : MESSAGES[status]}
+      </p>
+    </form>
+  );
+}
+
+
+========== FILE: src\components\common\Price.jsx ==========
+
+import useCurrency from '../../hooks/useCurrency';
+
+export default function Price({ amountInr, compareAtInr = null, className = '' }) {
+  const { formatPrice } = useCurrency();
+  const onSale = compareAtInr !== null && compareAtInr > amountInr;
+
+  return (
+    <span className={`inline-flex flex-wrap items-baseline gap-x-2 ${className}`}>
+      <span className={onSale ? 'font-semibold text-burgundy' : 'font-semibold'}>
+        {formatPrice(amountInr)}
+      </span>
+      {onSale && (
+        <s className="text-[0.85em] text-ink/50">
+          <span className="sr-only">Original price </span>
+          {formatPrice(compareAtInr)}
+        </s>
+      )}
+    </span>
+  );
+}
+
+
+========== FILE: src\components\common\SocialIcons.jsx ==========
+
+const base = {
+  width: 18,
+  height: 18,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.8,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+  'aria-hidden': true,
+  focusable: 'false',
+};
+
+export function FacebookIcon() {
+  return (
+    <svg {...base}>
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+export function InstagramIcon() {
+  return (
+    <svg {...base}>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+export function YoutubeIcon() {
+  return (
+    <svg {...base}>
+      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
+      <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
+    </svg>
+  );
+}
+
+export function WhatsappIcon() {
+  return (
+    <svg {...base}>
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+  );
+}
+
+
+========== FILE: src\components\common\SocialLinks.jsx ==========
+
+import { SOCIAL_LINKS } from '../../config/navigation';
+import { FacebookIcon, InstagramIcon, WhatsappIcon, YoutubeIcon } from './SocialIcons';
+
+const ICONS = {
+  facebook: FacebookIcon,
+  instagram: InstagramIcon,
+  youtube: YoutubeIcon,
+  whatsapp: WhatsappIcon,
+};
+
+export default function SocialLinks({ className = '', itemClassName = '' }) {
+  return (
+    <ul className={`items-center gap-1 ${className}`}>
+      {SOCIAL_LINKS.map(({ key, label, href }) => {
+        const Icon = ICONS[key];
+        return (
+          <li key={key}>
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${label} (opens in a new tab)`}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${itemClassName}`}
+            >
+              <Icon />
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+
+========== FILE: src\components\demo\CurrencyPreview.jsx ==========
+
+import { Minus, Plus } from 'lucide-react';
+import Price from '../common/Price';
+import useCart from '../../hooks/useCart';
+import useCartSummary from '../../hooks/useCartSummary';
+import useCurrency from '../../hooks/useCurrency';
+import { RATES_DISCLAIMER } from '../../config/currency';
+
+export default function CurrencyPreview() {
+  const { country, format } = useCurrency();
+  const { updateQuantity } = useCart();
+  const { lines, subtotal, itemCount } = useCartSummary();
+
+  return (
+    <section aria-labelledby="currency-preview-title" className="glass-panel rounded-2xl p-5 sm:p-8">
+      <h2 id="currency-preview-title" className="font-display text-2xl font-semibold text-burgundy sm:text-3xl">
+        Currency preview
+      </h2>
+      <p className="mt-1 text-sm text-ink/70">
+        Destination: <strong className="font-semibold">{country.name}</strong> &middot; {country.currency} &middot;{' '}
+        {country.locale}
+      </p>
+
+      <ul className="mt-6 divide-y divide-burgundy/10">
+        {lines.map(({ product, quantity, lineTotal }) => (
+          <li key={product.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="font-medium text-ink">{product.name}</p>
+              <Price amountInr={product.priceInr} compareAtInr={product.compareAtInr} className="text-sm" />
+            </div>
+            <div className="flex items-center justify-between gap-6 sm:justify-end">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  aria-label={`Decrease quantity of ${product.name}`}
+                  onClick={() => updateQuantity(product.id, -1)}
+                  className="icon-btn border border-burgundy/20"
+                >
+                  <Minus size={16} aria-hidden="true" />
+                </button>
+                <span aria-live="polite" className="w-8 text-center text-sm font-medium">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Increase quantity of ${product.name}`}
+                  onClick={() => updateQuantity(product.id, 1)}
+                  className="icon-btn border border-burgundy/20"
+                >
+                  <Plus size={16} aria-hidden="true" />
+                </button>
+              </div>
+              <span className="min-w-[5.5rem] text-right font-semibold text-ink">{format(lineTotal)}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <dl className="mt-2 flex items-center justify-between border-t border-burgundy/20 pt-4">
+        <dt className="text-sm text-ink/70">Subtotal ({itemCount} items)</dt>
+        <dd className="font-display text-2xl font-semibold text-burgundy">{format(subtotal)}</dd>
+      </dl>
+
+      <p className="mt-4 text-xs leading-relaxed text-ink/60">{RATES_DISCLAIMER}</p>
+    </section>
+  );
+}
+
+
+========== FILE: src\components\layout\AnnouncementBar.jsx ==========
+
+import { useEffect, useState } from 'react';
+import SocialLinks from '../common/SocialLinks';
+import useCurrency from '../../hooks/useCurrency';
+
+export default function AnnouncementBar({ messages, intervalMs = 5000 }) {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const { formatPrice } = useCurrency();
+  const total = messages.length;
+
+  useEffect(() => {
+    if (paused || total < 2) return undefined;
+    const timer = setInterval(() => setIndex((current) => (current + 1) % total), intervalMs);
+    return () => clearInterval(timer);
+  }, [paused, total, intervalMs]);
+
+  if (total === 0) return null;
+  const message = messages[index % total];
+
+  return (
+    <div
+      role="region"
+      aria-label="Announcements"
+      className="glass-announcement"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
+      <div className="mx-auto flex min-h-9 max-w-7xl items-center justify-center gap-4 px-4 py-1.5 sm:px-6 md:justify-between lg:px-8">
+        <p
+          key={message.id}
+          className="animate-fade-in text-center text-[11px] leading-snug tracking-wide sm:text-xs md:text-left md:text-[13px]"
+        >
+          {message.text}
+          {message.amountInr ? (
+            <>
+              {' '}
+              <strong className="font-semibold text-gold-light">{formatPrice(message.amountInr)}</strong>
+            </>
+          ) : null}
+        </p>
+        <SocialLinks
+          className="-my-1 hidden shrink-0 md:flex"
+          itemClassName="text-ivory-100/80 hover:bg-ivory-100/10 hover:text-gold-light"
+        />
+      </div>
+    </div>
+  );
+}
+
+
+========== FILE: src\components\layout\DesktopNav.jsx ==========
+
+import { useRef, useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
+import { PRIMARY_NAV } from '../../config/navigation';
+import useDismiss from '../../hooks/useDismiss';
+
+const linkClass = ({ isActive }) =>
+  `relative inline-flex items-center py-3.5 text-[13px] font-medium uppercase tracking-[0.14em] transition-colors after:absolute after:inset-x-0 after:bottom-2 after:h-0.5 after:origin-left after:bg-gold after:transition-transform ${
+    isActive
+      ? 'text-burgundy after:scale-x-100'
+      : 'text-ink/80 hover:text-burgundy after:scale-x-0 hover:after:scale-x-100'
+  }`;
+
+export default function DesktopNav() {
+  const [openKey, setOpenKey] = useState(null);
+  const navRef = useRef(null);
+  useDismiss(navRef, openKey !== null, () => setOpenKey(null));
+
+  return (
+    <nav ref={navRef} aria-label="Primary" className="hidden justify-center lg:flex">
+      <ul className="flex items-center gap-9">
+        {PRIMARY_NAV.map((item) => {
+          if (!item.children) {
+            return (
+              <li key={item.key}>
+                <NavLink to={item.to} end={item.to === '/'} className={linkClass}>
+                  {item.label}
+                </NavLink>
+              </li>
+            );
+          }
+
+          const open = openKey === item.key;
+          const panelId = `desktop-nav-${item.key}`;
+          return (
+            <li
+              key={item.key}
+              className="relative"
+              onMouseEnter={() => setOpenKey(item.key)}
+              onMouseLeave={() => setOpenKey(null)}
+            >
+              <div className="flex items-center gap-0.5">
+                <NavLink to={item.to} className={linkClass} onClick={() => setOpenKey(null)}>
+                  {item.label}
+                </NavLink>
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  aria-controls={panelId}
+                  aria-label={`${item.label} submenu`}
+                  onClick={() => setOpenKey(open ? null : item.key)}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full text-ink/60 hover:text-burgundy"
+                >
+                  <ChevronDown
+                    size={14}
+                    aria-hidden="true"
+                    className={`transition-transform ${open ? 'rotate-180' : ''}`}
+                  />
+                </button>
+              </div>
+              {open && (
+                <div id={panelId} className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-1">
+                  <ul className="w-60 animate-fade-in rounded-xl border border-burgundy/15 bg-ivory-100/90 p-2 shadow-glass backdrop-blur-xl">
+                    {item.children.map((child) => (
+                      <li key={child.to}>
+                        <NavLink
+                          to={child.to}
+                          onClick={() => setOpenKey(null)}
+                          className={({ isActive }) =>
+                            `block rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                              isActive
+                                ? 'bg-burgundy/10 text-burgundy'
+                                : 'text-ink/80 hover:bg-burgundy/5 hover:text-burgundy'
+                            }`
+                          }
+                        >
+                          {child.label}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
+
+========== FILE: src\components\layout\Footer.jsx ==========
+
+import Logo from '../common/Logo';
+import CountrySelector from '../common/CountrySelector';
+import NewsletterForm from '../common/NewsletterForm';
+import SocialLinks from '../common/SocialLinks';
+import FooterSection from './FooterSection';
+import { COMPANY_LINKS, SERVICE_LINKS, SHOP_LINKS } from '../../config/navigation';
+import { RATES_DISCLAIMER } from '../../config/currency';
+import { SITE } from '../../config/site';
+import useCurrency from '../../hooks/useCurrency';
+
+export default function Footer() {
+  const { country } = useCurrency();
+
+  return (
+    <footer className="mt-20 bg-gradient-to-b from-burgundy-800 to-burgundy-900 text-ivory-100">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="glass-dark rounded-2xl p-6 sm:p-8 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
+          <div>
+            <h2 className="font-display text-3xl font-semibold sm:text-4xl">Join the {SITE.name} circle</h2>
+            <p className="mt-2 text-sm leading-relaxed text-ivory-100/80 sm:text-base">
+              Be the first to hear about new handloom arrivals, festive edits and artisan stories.
+            </p>
+          </div>
+          <NewsletterForm className="mt-6 lg:mt-0" />
+        </div>
+
+        <div className="mt-12 grid gap-x-10 md:grid-cols-3 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+          <div className="mb-8 md:col-span-3 lg:col-span-1 lg:mb-0">
+            <Logo tone="light" />
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-ivory-100/80">{SITE.description}</p>
+            <SocialLinks
+              className="-ml-2 mt-4 flex"
+              itemClassName="text-ivory-100/80 hover:bg-ivory-100/10 hover:text-gold-light"
+            />
+          </div>
+          <FooterSection title="Shop" links={SHOP_LINKS} />
+          <FooterSection title="Customer Service" links={SERVICE_LINKS} />
+          <FooterSection title="Company" links={COMPANY_LINKS} />
+        </div>
+
+        <div className="mt-10 flex flex-col gap-6 border-t border-ivory-100/15 pt-8 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2 text-sm text-ivory-100/70">
+            <p>
+              &copy; {new Date().getFullYear()} {SITE.name}. All rights reserved.
+            </p>
+            <p className="max-w-xl text-xs leading-relaxed text-ivory-100/60">
+              Shipping to {country.name}. Prices shown in {country.currency}. {RATES_DISCLAIMER}
+            </p>
+          </div>
+          <div className="self-start md:self-auto">
+            <CountrySelector variant="footer" />
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+
+========== FILE: src\components\layout\FooterSection.jsx ==========
+
+import { useId, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
+
+export default function FooterSection({ title, links }) {
+  const [open, setOpen] = useState(false);
+  const listId = useId();
+
+  return (
+    <div className="border-b border-ivory-100/15 md:border-0">
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={listId}
+          onClick={() => setOpen((current) => !current)}
+          className="flex min-h-12 w-full items-center justify-between text-left font-display text-xl font-semibold text-gold-light md:pointer-events-none md:min-h-0 md:cursor-default md:pb-5"
+        >
+          {title}
+          <ChevronDown
+            size={18}
+            aria-hidden="true"
+            className={`transition-transform md:hidden ${open ? 'rotate-180' : ''}`}
+          />
+        </button>
+      </h3>
+      <ul id={listId} className={`space-y-1 pb-4 md:block md:space-y-3 md:pb-0 ${open ? 'block' : 'hidden'}`}>
+        {links.map((link) => (
+          <li key={link.to}>
+            <Link
+              to={link.to}
+              className="inline-flex min-h-10 items-center text-sm text-ivory-100/80 transition-colors hover:text-gold-light md:min-h-0"
+            >
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+
+========== FILE: src\components\layout\Header.jsx ==========
+
+import { useCallback, useState } from 'react';
+import { Menu } from 'lucide-react';
+import Logo from '../common/Logo';
+import DesktopNav from './DesktopNav';
+import HeaderActions from './HeaderActions';
+import HeaderContact from './HeaderContact';
+import SearchPanel from './SearchPanel';
+import { MOBILE_MENU_BUTTON_ID } from '../../config/navigation';
+
+export default function Header({ menuOpen, onOpenMenu }) {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
+
+  return (
+    <header className="glass-header sticky top-0 z-40">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-2 sm:h-20 lg:grid lg:h-24 lg:grid-cols-[1fr_auto_1fr] lg:gap-6">
+          <div className="flex items-center lg:justify-self-start">
+            <button
+              id={MOBILE_MENU_BUTTON_ID}
+              type="button"
+              aria-label="Open menu"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              onClick={onOpenMenu}
+              className="icon-btn -ml-2 lg:hidden"
+            >
+              <Menu size={24} aria-hidden="true" />
+            </button>
+            <HeaderContact />
+          </div>
+
+          <div className="lg:justify-self-center">
+            <Logo />
+          </div>
+
+          <div className="lg:justify-self-end">
+            <HeaderActions
+              searchOpen={searchOpen}
+              onToggleSearch={() => setSearchOpen((current) => !current)}
+            />
+          </div>
+        </div>
+
+        <div className="hidden border-t border-burgundy/10 lg:block">
+          <DesktopNav />
+        </div>
+      </div>
+      <SearchPanel open={searchOpen} onClose={closeSearch} />
+    </header>
+  );
+}
+
+
+========== FILE: src\components\layout\HeaderActions.jsx ==========
+
+import { Link } from 'react-router-dom';
+import { Heart, Search, ShoppingBag, User } from 'lucide-react';
+import CountrySelector from '../common/CountrySelector';
+import useCart from '../../hooks/useCart';
+import useCartSummary from '../../hooks/useCartSummary';
+import useCurrency from '../../hooks/useCurrency';
+
+export default function HeaderActions({ searchOpen, onToggleSearch }) {
+  const { itemCount } = useCart();
+  const { subtotal } = useCartSummary();
+  const { format } = useCurrency();
+
+  return (
+    <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+      <div className="mr-1 hidden min-[380px]:block">
+        <CountrySelector variant="header" />
+      </div>
+
+      <Link
+        to="/account"
+        className="hidden items-center gap-2 px-2 text-[13px] font-medium uppercase tracking-[0.12em] text-ink/80 hover:text-burgundy 2xl:inline-flex"
+      >
+        Login / Register
+      </Link>
+      <Link to="/account" aria-label="Account" className="icon-btn hidden lg:inline-flex 2xl:hidden">
+        <User size={20} aria-hidden="true" />
+      </Link>
+
+      <button
+        type="button"
+        aria-label="Search"
+        aria-expanded={searchOpen}
+        aria-controls="header-search-panel"
+        data-search-toggle
+        onClick={onToggleSearch}
+        className="icon-btn"
+      >
+        <Search size={20} aria-hidden="true" />
+      </button>
+
+      <Link to="/wishlist" aria-label="Wishlist" className="icon-btn hidden lg:inline-flex">
+        <Heart size={20} aria-hidden="true" />
+      </Link>
+
+      <Link
+        to="/cart"
+        aria-label={itemCount > 0 ? `Cart, ${itemCount} items` : 'Cart'}
+        className="relative inline-flex h-10 items-center gap-2 rounded-full px-2.5 text-ink transition-colors hover:bg-burgundy/10"
+      >
+        <span className="relative inline-flex">
+          <ShoppingBag size={20} aria-hidden="true" />
+          {itemCount > 0 && <span className="badge">{itemCount}</span>}
+        </span>
+        <span className="hidden text-sm font-medium xl:inline">{format(subtotal)}</span>
+      </Link>
+    </div>
+  );
+}
+
+
+========== FILE: src\components\layout\HeaderContact.jsx ==========
+
+import { SITE } from '../../config/site';
+
+export default function HeaderContact() {
+  return (
+    <div className="hidden items-start gap-8 xl:flex">
+      <div className="flex flex-col gap-0.5">
+        <span className="font-display text-lg font-semibold leading-tight text-ink">Call Us</span>
+        <a href={`tel:${SITE.phone.replace(/\s/g, '')}`} className="text-sm text-ink/70 hover:text-burgundy">
+          {SITE.phone}
+        </a>
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <span className="font-display text-lg font-semibold leading-tight text-ink">Any questions</span>
+        <a href={`mailto:${SITE.email}`} className="text-sm text-ink/70 hover:text-burgundy">
+          {SITE.email}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+
+========== FILE: src\components\layout\MainLayout.jsx ==========
+
+import { useCallback, useState } from 'react';
+import { Outlet } from 'react-router-dom';
+import AnnouncementBar from './AnnouncementBar';
+import Header from './Header';
+import MobileNavigation from './MobileNavigation';
+import Footer from './Footer';
+import ScrollToTop from './ScrollTop';
+import { ANNOUNCEMENTS } from '../../config/site';
+
+export default function MainLayout() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const openMenu = useCallback(() => setMenuOpen(true), []);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  return (
+    <div className="relative isolate flex min-h-screen flex-col overflow-x-clip">
+      <div aria-hidden="true" className="page-backdrop" />
+      <ScrollToTop />
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
+      <AnnouncementBar messages={ANNOUNCEMENTS} />
+      <Header menuOpen={menuOpen} onOpenMenu={openMenu} />
+      <MobileNavigation open={menuOpen} onClose={closeMenu} />
+      <main id="main-content" className="flex-1">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+
+========== FILE: src\components\layout\MobileNavigation.jsx ==========
+
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink } from 'react-router-dom';
+import { ChevronDown, Heart, ShoppingBag, User, X } from 'lucide-react';
+import Logo from '../common/Logo';
+import CountrySelector from '../common/CountrySelector';
+import SocialLinks from '../common/SocialLinks';
+import { MOBILE_MENU_BUTTON_ID, PRIMARY_NAV } from '../../config/navigation';
+import { SITE } from '../../config/site';
+import useCart from '../../hooks/useCart';
+import useScrollLock from '../../hooks/useScrollLock';
+
+const rowClass = ({ isActive }) =>
+  `flex min-h-12 flex-1 items-center rounded-lg px-3 text-base font-medium transition-colors ${
+    isActive ? 'bg-burgundy/10 text-burgundy' : 'text-ink hover:bg-burgundy/5'
+  }`;
+
+export default function MobileNavigation({ open, onClose }) {
+  const [expanded, setExpanded] = useState(null);
+  const closeRef = useRef(null);
+  const wasOpen = useRef(false);
+  const { itemCount } = useCart();
+  useScrollLock(open);
+
+  useEffect(() => {
+    if (open) {
+      wasOpen.current = true;
+      closeRef.current?.focus();
+    } else if (wasOpen.current) {
+      wasOpen.current = false;
+      document.getElementById(MOBILE_MENU_BUTTON_ID)?.focus();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleKey = (event) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) onClose();
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 1024px)');
+    const handleChange = (event) => {
+      if (event.matches) onClose();
+    };
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, [onClose]);
+
+  return (
+    <div
+      className={`fixed inset-0 z-50 lg:hidden ${
+        open ? 'visible' : 'invisible transition-[visibility] duration-300'
+      }`}
+      aria-hidden={!open}
+    >
+      <button
+        type="button"
+        tabIndex={open ? 0 : -1}
+        aria-label="Close menu"
+        onClick={onClose}
+        className={`absolute inset-0 cursor-default bg-ink/50 backdrop-blur-sm transition-opacity duration-300 ${
+          open ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+      <div
+        id="mobile-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Main menu"
+        className={`absolute inset-y-0 left-0 flex w-[88%] max-w-sm flex-col overflow-y-auto border-r border-burgundy/30 bg-ivory-100/90 shadow-glass backdrop-blur-2xl transition-transform duration-300 ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-burgundy/15 px-4">
+          <Logo onClick={onClose} />
+          <button ref={closeRef} type="button" aria-label="Close menu" onClick={onClose} className="icon-btn -mr-2">
+            <X size={24} aria-hidden="true" />
+          </button>
+        </div>
+
+        <nav aria-label="Mobile primary" className="px-3 py-4">
+          <ul className="space-y-1">
+            {PRIMARY_NAV.map((item) => {
+              if (!item.children) {
+                return (
+                  <li key={item.key}>
+                    <div className="flex">
+                      <NavLink to={item.to} end={item.to === '/'} onClick={onClose} className={rowClass}>
+                        {item.label}
+                      </NavLink>
+                    </div>
+                  </li>
+                );
+              }
+              const isExpanded = expanded === item.key;
+              const panelId = `mobile-nav-${item.key}`;
+              return (
+                <li key={item.key}>
+                  <div className="flex items-center">
+                    <NavLink to={item.to} onClick={onClose} className={rowClass}>
+                      {item.label}
+                    </NavLink>
+                    <button
+                      type="button"
+                      aria-expanded={isExpanded}
+                      aria-controls={panelId}
+                      aria-label={`${item.label} submenu`}
+                      onClick={() => setExpanded(isExpanded ? null : item.key)}
+                      className="icon-btn h-12 w-12"
+                    >
+                      <ChevronDown
+                        size={20}
+                        aria-hidden="true"
+                        className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                  </div>
+                  {isExpanded && (
+                    <ul id={panelId} className="mb-2 ml-3 space-y-0.5 border-l border-gold/60 pl-3">
+                      {item.children.map((child) => (
+                        <li key={child.to}>
+                          <NavLink
+                            to={child.to}
+                            onClick={onClose}
+                            className={({ isActive }) =>
+                              `flex min-h-11 items-center rounded-lg px-3 text-[15px] transition-colors ${
+                                isActive ? 'bg-burgundy/10 text-burgundy' : 'text-ink/80 hover:bg-burgundy/5'
+                              }`
+                            }
+                          >
+                            {child.label}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        <div className="space-y-1 border-t border-burgundy/15 px-3 py-4">
+          <Link to="/account" onClick={onClose} className="flex min-h-12 items-center gap-3 rounded-lg px-3 text-base text-ink hover:bg-burgundy/5">
+            <User size={20} aria-hidden="true" />
+            Login / Register
+          </Link>
+          <Link to="/wishlist" onClick={onClose} className="flex min-h-12 items-center gap-3 rounded-lg px-3 text-base text-ink hover:bg-burgundy/5">
+            <Heart size={20} aria-hidden="true" />
+            Wishlist
+          </Link>
+          <Link to="/cart" onClick={onClose} className="flex min-h-12 items-center gap-3 rounded-lg px-3 text-base text-ink hover:bg-burgundy/5">
+            <ShoppingBag size={20} aria-hidden="true" />
+            Cart
+            {itemCount > 0 && (
+              <span className="ml-auto rounded-full bg-gold px-2 py-0.5 text-xs font-semibold text-ink">
+                {itemCount}
+              </span>
+            )}
+          </Link>
+        </div>
+
+        <div className="mt-auto space-y-4 border-t border-burgundy/15 px-4 py-5">
+          <CountrySelector variant="drawer" />
+          <div className="space-y-1 text-sm text-ink/70">
+            <a href={`tel:${SITE.phone.replace(/\s/g, '')}`} className="block hover:text-burgundy">
+              {SITE.phone}
+            </a>
+            <a href={`mailto:${SITE.email}`} className="block break-all hover:text-burgundy">
+              {SITE.email}
+            </a>
+          </div>
+          <SocialLinks className="-ml-2 flex" itemClassName="text-burgundy hover:bg-burgundy/10" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+========== FILE: src\components\layout\ScrollTop.jsx ==========
+
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
+export default function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
+
+========== FILE: src\components\layout\SearchPanel.jsx ==========
+
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, X } from 'lucide-react';
+import useDismiss from '../../hooks/useDismiss';
+
+export default function SearchPanel({ open, onClose }) {
+  const [query, setQuery] = useState('');
+  const inputRef = useRef(null);
+  const panelRef = useRef(null);
+  const navigate = useNavigate();
+  useDismiss(panelRef, open, onClose, '[data-search-toggle]');
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
+
+  if (!open) return null;
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const value = query.trim();
+    if (!value) {
+      inputRef.current?.focus();
+      return;
+    }
+    navigate(`/shop?q=${encodeURIComponent(value)}`);
+    setQuery('');
+    onClose();
+  };
+
+  return (
+    <div
+      ref={panelRef}
+      id="header-search-panel"
+      className="absolute inset-x-0 top-full z-40 animate-fade-in border-b border-burgundy/30 bg-ivory-100/90 shadow-glass backdrop-blur-xl"
+    >
+      <form
+        role="search"
+        onSubmit={handleSubmit}
+        className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-3 sm:px-6"
+      >
+        <label htmlFor="header-search-input" className="sr-only">
+          Search sarees
+        </label>
+        <div className="relative flex-1">
+          <Search
+            size={18}
+            aria-hidden="true"
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/50"
+          />
+          <input
+            ref={inputRef}
+            id="header-search-input"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search sarees, fabrics, collections"
+            className="h-12 w-full rounded-full border border-burgundy/25 bg-white/70 pl-11 pr-4 text-base text-ink placeholder:text-ink/50"
+          />
+        </div>
+        <button
+          type="submit"
+          className="h-12 rounded-full bg-burgundy px-5 text-sm font-semibold text-ivory-100 transition-colors hover:bg-burgundy-700"
+        >
+          Search
+        </button>
+        <button type="button" onClick={onClose} aria-label="Close search" className="icon-btn shrink-0">
+          <X size={20} aria-hidden="true" />
+        </button>
+      </form>
+    </div>
+  );
+}
+
+
+========== FILE: src\components\products\ProductCard.jsx ==========
+
+
+
+========== FILE: src\components\products\ProductGrid.jsx ==========
+
+
+
+========== FILE: src\config\currency.js ==========
+
+export const BASE_CURRENCY = 'INR';
+
+export const STORAGE_KEY = 'saree-store.country';
+
+export const DEFAULT_COUNTRY_CODE = 'AU';
+
+export const RATES_DISCLAIMER =
+  'Prices are illustrative conversions from INR using fixed demo rates, not live exchange rates.';
+
+export const COUNTRIES = Object.freeze([
+  { code: 'AU', name: 'Australia', currency: 'AUD', locale: 'en-AU', rate: 0.018 },
+  { code: 'NZ', name: 'New Zealand', currency: 'NZD', locale: 'en-NZ', rate: 0.0198 },
+  { code: 'US', name: 'United States', currency: 'USD', locale: 'en-US', rate: 0.0119 },
+  { code: 'CA', name: 'Canada', currency: 'CAD', locale: 'en-CA', rate: 0.0166 },
+  { code: 'GB', name: 'United Kingdom', currency: 'GBP', locale: 'en-GB', rate: 0.0092 },
+  { code: 'MY', name: 'Malaysia', currency: 'MYR', locale: 'ms-MY', rate: 0.05 },
+  { code: 'SG', name: 'Singapore', currency: 'SGD', locale: 'en-SG', rate: 0.0154 },
+]);
+
+export const isSupportedCountry = (code) => COUNTRIES.some((country) => country.code === code);
+
+export const getCountry = (code) =>
+  COUNTRIES.find((country) => country.code === code) ??
+  COUNTRIES.find((country) => country.code === DEFAULT_COUNTRY_CODE);
+
+
+========== FILE: src\config\navigation.js ==========
+
+export const MOBILE_MENU_BUTTON_ID = 'mobile-menu-button';
+
+export const PRIMARY_NAV = [
+  { key: 'home', label: 'Home', to: '/' },
+  { key: 'shop', label: 'Shop All', to: '/shop' },
+  {
+    key: 'sarees',
+    label: 'Sarees',
+    to: '/sarees',
+    children: [
+      { label: 'Banarasi Silk', to: '/sarees/banarasi-silk' },
+      { label: 'Kanjivaram Silk', to: '/sarees/kanjivaram-silk' },
+      { label: 'Chanderi', to: '/sarees/chanderi' },
+      { label: 'Handloom Cotton', to: '/sarees/handloom-cotton' },
+      { label: 'Georgette & Chiffon', to: '/sarees/georgette-chiffon' },
+    ],
+  },
+  {
+    key: 'collections',
+    label: 'Collections',
+    to: '/collections',
+    children: [
+      { label: 'Wedding Edit', to: '/collections/wedding-edit' },
+      { label: 'Festive Edit', to: '/collections/festive-edit' },
+      { label: 'Everyday Heritage', to: '/collections/everyday-heritage' },
+      { label: 'New Arrivals', to: '/collections/new-arrivals' },
+    ],
+  },
+  { key: 'story', label: 'Our Story', to: '/our-story' },
+];
+
+export const SHOP_LINKS = [
+  { label: 'Banarasi Silk', to: '/sarees/banarasi-silk' },
+  { label: 'Kanjivaram Silk', to: '/sarees/kanjivaram-silk' },
+  { label: 'Chanderi', to: '/sarees/chanderi' },
+  { label: 'Handloom Cotton', to: '/sarees/handloom-cotton' },
+  { label: 'Wedding Edit', to: '/collections/wedding-edit' },
+  { label: 'Festive Edit', to: '/collections/festive-edit' },
+];
+
+export const SERVICE_LINKS = [
+  { label: 'Contact Us', to: '/contact' },
+  { label: 'FAQs', to: '/faqs' },
+  { label: 'Shipping', to: '/shipping' },
+  { label: 'Returns and Exchange Policy', to: '/returns-and-exchange' },
+];
+
+export const COMPANY_LINKS = [
+  { label: 'Our Story', to: '/our-story' },
+  { label: 'Privacy Policy', to: '/privacy-policy' },
+  { label: 'Terms & Conditions', to: '/terms-and-conditions' },
+];
+
+export const SOCIAL_LINKS = [
+  { key: 'facebook', label: 'Facebook', href: 'https://www.facebook.com/' },
+  { key: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/' },
+  { key: 'youtube', label: 'YouTube', href: 'https://www.youtube.com/' },
+  { key: 'whatsapp', label: 'WhatsApp', href: 'https://wa.me/' },
+];
+
+
+========== FILE: src\config\site.js ==========
+
+export const SITE = {
+  name: 'Suvastra',
+  tagline: 'Heritage Sarees',
+  description:
+    'Handpicked handloom sarees woven by master artisans across India, from Banarasi brocades to Kanjivaram silks, carried to your doorstep around the world.',
+  phone: '+91 98765 43210',
+  email: 'hello@suvastra.example',
+};
+
+export const ANNOUNCEMENTS = [
+  { id: 'promo', text: 'New handloom arrivals every Friday. Claim your favourite before it is gone.' },
+  { id: 'shipping', text: 'Free international shipping on orders above', amountInr: 25000 },
+];
+
+
+========== FILE: src\context\CartContext.jsx ==========
+
+import { createContext } from 'react';
+
+const CartContext = createContext(null);
+
+export default CartContext;
+
+
+========== FILE: src\context\CartProvider.jsx ==========
+
+import { useCallback, useMemo, useState } from 'react';
+import CartContext from './CartContext';
+import { INITIAL_CART_LINES } from '../data/sampleProduct';
+
+const MAX_QUANTITY = 9;
+
+export default function CartProvider({ children }) {
+  const [lines, setLines] = useState(INITIAL_CART_LINES);
+
+  const updateQuantity = useCallback((productId, delta) => {
+    setLines((current) =>
+      current.map((line) =>
+        line.productId === productId
+          ? { ...line, quantity: Math.min(MAX_QUANTITY, Math.max(1, line.quantity + delta)) }
+          : line,
+      ),
+    );
+  }, []);
+
+  const itemCount = useMemo(
+    () => lines.reduce((total, line) => total + line.quantity, 0),
+    [lines],
+  );
+
+  const value = useMemo(() => ({ lines, itemCount, updateQuantity }), [lines, itemCount, updateQuantity]);
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+}
+
+
+========== FILE: src\context\CurrencyContext.jsx ==========
+
+import { createContext } from 'react';
+
+const CurrencyContext = createContext(null);
+
+export default CurrencyContext;
+
+
+========== FILE: src\context\CurrencyProvider.jsx ==========
+
+import { useCallback, useMemo, useState } from 'react';
+import CurrencyContext from './CurrencyContext';
+import {
+  COUNTRIES,
+  DEFAULT_COUNTRY_CODE,
+  STORAGE_KEY,
+  getCountry,
+  isSupportedCountry,
+} from '../config/currency';
+import { convertFromInr, formatCurrency, formatPrice } from '../utils/formatPrice';
+
+const readStoredCode = () => {
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    return isSupportedCountry(stored) ? stored : DEFAULT_COUNTRY_CODE;
+  } catch (error) {
+    return DEFAULT_COUNTRY_CODE;
+  }
+};
+
+export default function CurrencyProvider({ children }) {
+  const [code, setCode] = useState(readStoredCode);
+  const country = useMemo(() => getCountry(code), [code]);
+
+  const setCountryCode = useCallback((nextCode) => {
+    if (!isSupportedCountry(nextCode)) return;
+    setCode(nextCode);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, nextCode);
+    } catch (error) {
+      return;
+    }
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      country,
+      countries: COUNTRIES,
+      setCountryCode,
+      convert: (amountInr) => convertFromInr(amountInr, country),
+      format: (amount) => formatCurrency(amount, country),
+      formatPrice: (amountInr) => formatPrice(amountInr, country),
+    }),
+    [country, setCountryCode],
+  );
+
+  return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>;
+}
+
+
+========== FILE: src\data\sampleProduct.jsx ==========
+
+export const SAMPLE_PRODUCTS = [
+  { id: 'kanjivaram-ruby', name: 'Ruby Kanjivaram Silk Saree', priceInr: 18500, compareAtInr: 21500 },
+  { id: 'banarasi-ivory', name: 'Ivory Banarasi Brocade Saree', priceInr: 12900, compareAtInr: null },
+  { id: 'chanderi-gold', name: 'Gold Tissue Chanderi Saree', priceInr: 6400, compareAtInr: 7200 },
+];
+
+export const SAMPLE_PRODUCTS_BY_ID = Object.fromEntries(
+  SAMPLE_PRODUCTS.map((product) => [product.id, product]),
+);
+
+export const INITIAL_CART_LINES = [
+  { productId: 'kanjivaram-ruby', quantity: 1 },
+  { productId: 'banarasi-ivory', quantity: 2 },
+  { productId: 'chanderi-gold', quantity: 1 },
+];
+
+
+========== FILE: src\hooks\useCart.js ==========
+
+import { useContext } from 'react';
+import CartContext from '../context/CartContext';
+
+export default function useCart() {
+  const value = useContext(CartContext);
+  if (!value) {
+    throw new Error('useCart must be used within CartProvider');
+  }
+  return value;
+}
+
+
+========== FILE: src\hooks\useCartSummary.js ==========
+
+import { useMemo } from 'react';
+import useCart from './useCart';
+import useCurrency from './useCurrency';
+import { SAMPLE_PRODUCTS_BY_ID } from '../data/sampleProduct';
+import { convertFromInr } from '../utils/formatPrice';
+
+export default function useCartSummary() {
+  const { lines, itemCount } = useCart();
+  const { country } = useCurrency();
+
+  return useMemo(() => {
+    const detailed = lines.map((line) => {
+      const product = SAMPLE_PRODUCTS_BY_ID[line.productId];
+      const unit = convertFromInr(product.priceInr, country);
+      return { product, quantity: line.quantity, unit, lineTotal: unit * line.quantity };
+    });
+    const subtotal = detailed.reduce((total, line) => total + line.lineTotal, 0);
+    return { lines: detailed, subtotal, itemCount };
+  }, [lines, itemCount, country]);
+}
+
+
+========== FILE: src\hooks\useCurrency.js ==========
+
+import { useContext } from 'react';
+import CurrencyContext from '../context/CurrencyContext';
+
+export default function useCurrency() {
+  const value = useContext(CurrencyContext);
+  if (!value) {
+    throw new Error('useCurrency must be used within CurrencyProvider');
+  }
+  return value;
+}
+
+
+========== FILE: src\hooks\useDismiss.js ==========
+
+import { useEffect } from 'react';
+
+export default function useDismiss(ref, active, onDismiss, ignoreSelector = null) {
+  useEffect(() => {
+    if (!active) return undefined;
+
+    const handlePointer = (event) => {
+      if (ignoreSelector && event.target.closest?.(ignoreSelector)) return;
+      if (ref.current && !ref.current.contains(event.target)) onDismiss();
+    };
+    const handleKey = (event) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) onDismiss();
+    };
+
+    document.addEventListener('pointerdown', handlePointer);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointer);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [ref, active, onDismiss, ignoreSelector]);
+}
+
+
+========== FILE: src\hooks\useScrollLock.js ==========
+
+import { useEffect } from 'react';
+
+export default function useScrollLock(active) {
+  useEffect(() => {
+    if (!active) return undefined;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [active]);
+}
+
+
+========== FILE: src\pages\Cart.jsx ==========
+
+
+
+========== FILE: src\pages\Home.jsx ==========
+
+
+
+========== FILE: src\pages\InfoPages.jsx ==========
+
+
+
+========== FILE: src\pages\PlaceholderPage.jsx ==========
+
+import CurrencyPreview from '../components/demo/CurrencyPreview';
+
+export default function PlaceholderPage({ title, showPreview = false }) {
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <h1 className="font-display text-4xl font-semibold capitalize text-burgundy sm:text-5xl">{title}</h1>
+      <p className="mt-3 max-w-xl text-base leading-relaxed text-ink/70">
+        This page is a placeholder inside the shared layout. Its content will be built in a later milestone.
+      </p>
+      {showPreview && (
+        <div className="mt-10">
+          <CurrencyPreview />
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+========== FILE: src\pages\ProductDetails.jsx ==========
+
+
+
+========== FILE: src\pages\RoutePlaceholder.jsx ==========
+
+import { useLocation } from 'react-router-dom';
+import PlaceholderPage from './PlaceholderPage';
+
+export default function RoutePlaceholder() {
+  const { pathname } = useLocation();
+  const title = pathname
+    .split('/')
+    .filter(Boolean)
+    .map((segment) => segment.replace(/-/g, ' '))
+    .join(' / ');
+
+  return <PlaceholderPage title={title || 'Page not found'} />;
+}
+
+
+========== FILE: src\pages\Shop.jsx ==========
+
+
+
+========== FILE: src\pages\Wishlist.jsx ==========
+
+
+
+========== FILE: src\utils\formatPrice.js ==========
+
+const formatters = new Map();
+
+const getFormatter = (locale, currency) => {
+  const key = `${locale}|${currency}`;
+  if (!formatters.has(key)) {
+    formatters.set(
+      key,
+      new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }),
+    );
+  }
+  return formatters.get(key);
+};
+
+export const convertFromInr = (amountInr, country) => Math.round(amountInr * country.rate);
+
+export const formatCurrency = (amount, country) =>
+  getFormatter(country.locale, country.currency).format(amount);
+
+export const formatPrice = (amountInr, country) =>
+  formatCurrency(convertFromInr(amountInr, country), country);
+
+
+========== FILE: eslint.config.js ==========
+
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
+])
+
+
+
+========== FILE: index.html ==========
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#6B0F24" />
+    <title>Suvastra | Heritage Sarees</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Jost:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+========== FILE: package.json ==========
+
+{
+  "name": "saree-store",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "lucide-react": "^1.61.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router": "^7.18.4",
+    "react-router-dom": "^7.18.4",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "vite": "^8.3.4"
+  }
+}
+
+
+
+========== FILE: tailwind.config.js ==========
+
+export default {
+  content: ['./index.html', './src/**/*.{js,jsx}'],
+  theme: {
+    extend: {
+      colors: {
+        ivory: { 50: '#FFFBF2', 100: '#FBF5E9', 200: '#F5EBD3' },
+        burgundy: {
+          DEFAULT: '#6B0F24',
+          700: '#7A1229',
+          800: '#52091B',
+          900: '#3A0612',
+        },
+        gold: { DEFAULT: '#B8923A', light: '#E0C27A' },
+        ink: '#1F1A17',
+      },
+      fontFamily: {
+        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans: ['Jost', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+      opacity: {
+        5: '0.05',
+        15: '0.15',
+        35: '0.35',
+        45: '0.45',
+        55: '0.55',
+        65: '0.65',
+        85: '0.85',
+        95: '0.95',
+      },
+      boxShadow: {
+        glass: '0 8px 32px rgba(58, 6, 18, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.65)',
+      },
+      keyframes: {
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.35s ease-out both',
+      },
+    },
+  },
+  plugins: [],
+};
+
+
+========== FILE: vite.config.js ==========
+
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vite'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss()
+  ],
+})
+

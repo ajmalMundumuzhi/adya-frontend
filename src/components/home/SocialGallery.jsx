@@ -1,0 +1,7 @@
+import { InstagramIcon } from '../common/SocialIcons';
+import { ArrowUpRight } from 'lucide-react';
+import { SOCIAL_IMAGES } from '../../data/homepage';
+
+export default function SocialGallery() {
+  return <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12"><div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-gold">Style notes</p><h2 className="font-display text-3xl font-medium text-burgundy sm:text-4xl">A world of drape and detail</h2><p className="mt-3 max-w-xl text-sm leading-7 text-ink/65">A visual moodboard of colour, craft and occasion wear. This gallery is not connected to a live social account.</p></div><span className="inline-flex items-center gap-2 text-sm text-burgundy"><InstagramIcon size={18} aria-hidden="true" /> ADYA style journal <ArrowUpRight size={16} aria-hidden="true" /></span></div><div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">{SOCIAL_IMAGES.map((item, index) => <div key={item.alt} className={`overflow-hidden bg-[#e9dfd0] ${index === 1 || index === 4 ? 'hidden sm:block' : ''}`}><img src={item.image} alt={item.alt} loading="lazy" className="aspect-square h-full w-full object-cover transition-transform duration-700 hover:scale-105" /></div>)}</div></section>;
+}
