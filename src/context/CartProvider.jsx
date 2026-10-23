@@ -1,7 +1,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import CartContext from './CartContext';
-import { INITIAL_CART_LINES } from '../data/sampleProduct';
+import { INITIAL_CART_LINES } from '../data/sampleProduct.js';
 
 const MAX_QUANTITY = 9;
 
@@ -16,21 +16,34 @@ export default function CartProvider({ children }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('adya-cart', JSON.stringify(lines));
+    try {
+      localStorage.setItem('adya-cart', JSON.stringify(lines));
+    } catch {
+    }
   }, [lines]);
 
   const addToCart = useCallback((product, quantity = 1) => {
     if (!product?.id) return;
 
+    const safeQuantity = Math.min(
+      MAX_QUANTITY,
+      Math.max(1, Number(quantity) || 1),
+    );
+
     setLines((current) => {
-      const existing = current.find((line) => line.productId === product.id);
+      const existing = current.find(
+        (line) => line.productId === product.id,
+      );
 
       if (existing) {
         return current.map((line) =>
           line.productId === product.id
             ? {
                 ...line,
-                quantity: Math.min(MAX_QUANTITY, line.quantity + quantity),
+                quantity: Math.min(
+                  MAX_QUANTITY,
+                  line.quantity + safeQuantity,
+                ),
                 product,
               }
             : line,
@@ -41,7 +54,7 @@ export default function CartProvider({ children }) {
         ...current,
         {
           productId: product.id,
-          quantity: Math.min(MAX_QUANTITY, Math.max(1, quantity)),
+          quantity: safeQuantity,
           product,
         },
       ];
@@ -71,7 +84,9 @@ export default function CartProvider({ children }) {
   }, []);
 
   const setCartQuantity = useCallback((productId, quantity) => {
-    if (quantity <= 0) {
+    const safeQuantity = Number(quantity);
+
+    if (!Number.isFinite(safeQuantity) || safeQuantity <= 0) {
       setLines((current) =>
         current.filter((line) => line.productId !== productId),
       );
@@ -81,7 +96,13 @@ export default function CartProvider({ children }) {
     setLines((current) =>
       current.map((line) =>
         line.productId === productId
-          ? { ...line, quantity: Math.min(MAX_QUANTITY, quantity) }
+          ? {
+              ...line,
+              quantity: Math.min(
+                MAX_QUANTITY,
+                Math.max(1, Math.floor(safeQuantity)),
+              ),
+            }
           : line,
       ),
     );
