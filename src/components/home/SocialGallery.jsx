@@ -1,7 +1,106 @@
+
 import { InstagramIcon } from '../common/SocialIcons';
 import { ArrowUpRight } from 'lucide-react';
 import { SOCIAL_IMAGES } from '../../data/homepage';
 
 export default function SocialGallery() {
-  return <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12"><div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-gold">Style notes</p><h2 className="font-display text-3xl font-medium text-burgundy sm:text-4xl">A world of drape and detail</h2><p className="mt-3 max-w-xl text-sm leading-7 text-ink/65">A visual moodboard of colour, craft and occasion wear. This gallery is not connected to a live social account.</p></div><span className="inline-flex items-center gap-2 text-sm text-burgundy"><InstagramIcon size={18} aria-hidden="true" /> ADYA style journal <ArrowUpRight size={16} aria-hidden="true" /></span></div><div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">{SOCIAL_IMAGES.map((item, index) => <div key={item.alt} className={`overflow-hidden bg-[#e9dfd0] ${index === 1 || index === 4 ? 'hidden sm:block' : ''}`}><img src={item.image} alt={item.alt} loading="lazy" className="aspect-square h-full w-full object-cover transition-transform duration-700 hover:scale-105" /></div>)}</div></section>;
+  return (
+    <section className="relative mx-auto max-w-7xl overflow-hidden px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
+      <div className="pointer-events-none absolute right-0 top-10 h-64 w-64 rounded-full bg-[#C4B382]/10 blur-3xl" />
+
+      <div className="relative mb-10 flex flex-col justify-between gap-6 sm:mb-12 sm:flex-row sm:items-end">
+        <div className="max-w-2xl">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="h-px w-9 bg-[#C4B382]" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8D7547] sm:text-xs">
+              The ADYA style journal
+            </p>
+          </div>
+
+          <h2 className="font-display text-4xl font-medium leading-tight tracking-tight text-[#51452F] sm:text-5xl lg:text-6xl">
+            A world of drape
+            <span className="block italic text-[#A58F5D]">
+              and detail.
+            </span>
+          </h2>
+
+          <p className="mt-5 max-w-lg text-sm leading-7 text-[#756B5B] sm:text-base">
+            Stories woven in silk, moments dressed in tradition, and the little
+            details that make every drape unforgettable.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between gap-5 border-y border-[#C4B382]/40 py-4 sm:min-w-[220px] sm:justify-start sm:border-y-0 sm:border-l sm:py-2 sm:pl-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[#C4B382]/50 bg-[#FFF9ED] text-[#8D7547]">
+              <InstagramIcon size={19} aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-medium text-[#51452F]">
+                ADYA style journal
+              </p>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-[#8B806D]">
+                Inspired by tradition
+              </p>
+            </div>
+          </div>
+
+          <ArrowUpRight
+            size={19}
+            className="shrink-0 text-[#8D7547]"
+            aria-hidden="true"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+        {SOCIAL_IMAGES.map((item, index) => (
+          <a
+            key={item.alt}
+            href="#social-gallery"
+            aria-label={`Explore the ADYA style journal: ${item.alt}`}
+            className={`group relative block overflow-hidden rounded-sm bg-[#E8D9B9] shadow-[0_4px_18px_rgba(76,62,36,0.08)] transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-[0_16px_35px_rgba(76,62,36,0.18)] ${
+              index === 1 || index === 4 ? 'hidden sm:block' : ''
+            }`}
+          >
+            <div className="aspect-[4/5] overflow-hidden">
+              <img
+                src={item.image}
+                alt={item.alt}
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 motion-reduce:transition-none"
+              />
+            </div>
+
+            <div className="absolute inset-0 bg-gradient-to-t from-[#21190F]/70 via-transparent to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-100" />
+
+            <div className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/40 bg-[#FFF9ED]/90 text-[#75633D] opacity-0 shadow-sm transition-all duration-300 group-hover:opacity-100 sm:left-4 sm:top-4">
+              <InstagramIcon size={16} aria-hidden="true" />
+            </div>
+
+            <div className="absolute inset-x-0 bottom-0 flex translate-y-2 items-end justify-between gap-2 p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 sm:p-4">
+              <p className="text-xs leading-5 text-white sm:text-sm">
+                {item.alt}
+              </p>
+              <ArrowUpRight
+                size={17}
+                className="shrink-0 text-white"
+                aria-hidden="true"
+              />
+            </div>
+
+            <span className="absolute bottom-3 left-3 h-px w-7 origin-left scale-x-0 bg-[#E8D2A0] transition-transform duration-500 group-hover:scale-x-100 sm:bottom-4 sm:left-4" />
+          </a>
+        ))}
+      </div>
+
+      <div className="mt-8 flex items-center justify-center gap-3 sm:mt-10">
+        <span className="h-px w-10 bg-[#C4B382]/60" />
+        <p className="text-center text-[10px] uppercase tracking-[0.2em] text-[#8B806D] sm:text-xs">
+          Tradition, told beautifully
+        </p>
+        <span className="h-px w-10 bg-[#C4B382]/60" />
+      </div>
+    </section>
+  );
 }
