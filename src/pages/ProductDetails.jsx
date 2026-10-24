@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, Heart, Maximize2, Minus, Plus, Shuffle, Share2, ShoppingBag, Truck, RotateCcw, ShieldCheck, Leaf, ChevronLeft, ChevronRight, X, Check, Package,
@@ -7,14 +6,12 @@ import {
 import { SAMPLE_PRODUCTS } from '../data/sampleProduct.js';
 import Price from '../components/common/Price';
 import useCart from '../hooks/useCart';
-
 const benefits = [
   { icon: Truck, title: 'Free Shipping', description: 'On orders above ₹999' },
   { icon: RotateCcw, title: 'Easy Returns', description: '7 days hassle free' },
   { icon: ShieldCheck, title: 'Secure Payment', description: '100% secure checkout' },
   { icon: Leaf, title: 'Premium Quality', description: 'Assured craftsmanship' },
 ];
-
 const productImages = [
   {
     src: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=85',
@@ -29,28 +26,56 @@ const productImages = [
     alt: 'Saree fabric detail',
   },
 ];
-
 const fallbackVariants = [
   { name: 'Teal', color: '#527D80', images: productImages.map((image) => image.src) },
   { name: 'Ivory', color: '#E8DDC9', images: [productImages[1].src, productImages[2].src, productImages[0].src] },
   { name: 'Rose', color: '#A74C65', images: [productImages[2].src, productImages[0].src, productImages[1].src] },
   { name: 'Burgundy', color: '#762B39', images: [productImages[0].src, productImages[2].src, productImages[1].src] },
 ];
-
+const WISHLIST_KEY = 'adya-wishlist';
+function readWishlist() {
+  try {
+    const items = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
+    return Array.isArray(items) ? items : [];
+  } catch {
+    return [];
+  }
+}
+function toggleWishlistProduct(product) {
+  const items = readWishlist();
+  const exists = items.some((item) => item.id === product.id);
+  const updated = exists
+    ? items.filter((item) => item.id !== product.id)
+    : [...items, product];
+  try {
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(updated));
+    return !exists;
+  } catch {
+    return exists;
+  }
+}
 export default function ProductDetails() {
   const { id } = useParams();
   const product = SAMPLE_PRODUCTS.find((item) => item.id === id);
   const { addToCart } = useCart();
-
   const [variantIndex, setVariantIndex] = useState(0);
   const [imageIndex, setImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
   const [added, setAdded] = useState(false);
-  const [wishlist, setWishlist] = useState(false);
+  const [wishlist, setWishlist] = useState(() =>
+    readWishlist().some((item) => item.id === product?.id),
+  );
+  const [wishlistIds, setWishlistIds] = useState(() =>
+    readWishlist().map((item) => item.id),
+  );
   const [copied, setCopied] = useState(false);
-
+  useEffect(() => {
+    const saved = readWishlist();
+    setWishlist(saved.some((item) => item.id === product?.id));
+    setWishlistIds(saved.map((item) => item.id));
+  }, [product?.id]);
   if (!product) {
     return (
       <main className="min-h-[60vh] bg-[#FAF8F3] px-5 py-24 text-center">
@@ -61,30 +86,41 @@ export default function ProductDetails() {
       </main>
     );
   }
-
   const variants = product.variants?.length ? product.variants : fallbackVariants;
   const selectedVariant = variants[variantIndex % variants.length];
   const images = selectedVariant?.images?.length
     ? selectedVariant.images
     : productImages.map((image) => image.src);
-
   const mainImage = images[imageIndex % images.length];
-
+  const handleToggleWishlist = () => {
+    const saved = toggleWishlistProduct({
+      ...product,
+      image: mainImage,
+      selectedColor: selectedVariant?.name,
+    });
+    setWishlist(saved);
+    setWishlistIds(readWishlist().map((item) => item.id));
+  };
+  const handleRelatedWishlist = (item) => {
+    toggleWishlistProduct({
+      ...item,
+      image: item.variants?.[0]?.images?.[0] || productImages[0].src,
+    });
+    const saved = readWishlist();
+    setWishlistIds(saved.map((savedItem) => savedItem.id));
+    setWishlist(saved.some((savedItem) => savedItem.id === product.id));
+  };
   const relatedProducts = SAMPLE_PRODUCTS.filter((item) => item.id !== product.id);
-
   const selectVariant = (index) => {
     setVariantIndex(index);
     setImageIndex(0);
     setAdded(false);
   };
-
   const changeImage = (direction) => {
     setImageIndex((current) => (current + direction + images.length) % images.length);
   };
-
   const handleAddToCart = () => {
     if (typeof addToCart !== 'function') return;
-
     addToCart(
       {
         ...product,
@@ -94,10 +130,8 @@ export default function ProductDetails() {
       },
       quantity,
     );
-
     setAdded(true);
   };
-
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -107,7 +141,6 @@ export default function ProductDetails() {
       setCopied(false);
     }
   };
-
   return (
     <main className="min-h-screen bg-[#FAF8F3] text-[#34251F]">
       <div className="mx-auto max-w-[1500px] px-4 pb-16 sm:px-7 lg:px-10">
@@ -120,7 +153,6 @@ export default function ProductDetails() {
           <span>/</span>
           <span className="max-w-[220px] truncate text-[#5B4B41]">{product.name}</span>
         </nav>
-
         <section className="grid gap-8 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,1fr)] xl:gap-10">
           <div className="grid grid-cols-[58px_minmax(0,1fr)] gap-3 sm:grid-cols-[76px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[88px_minmax(0,1fr)]">
             <div className="flex flex-col gap-3">
@@ -144,7 +176,6 @@ export default function ProductDetails() {
                   />
                 </button>
               ))}
-
               <div className="mt-1 flex gap-1">
                 <button
                   type="button"
@@ -164,7 +195,6 @@ export default function ProductDetails() {
                 </button>
               </div>
             </div>
-
             <div className="relative min-w-0 self-start overflow-hidden rounded-md bg-[#EFE7DB]">
               <img
                 key={`${selectedVariant?.name}-${mainImage}`}
@@ -172,7 +202,6 @@ export default function ProductDetails() {
                 alt={`${product.name} in ${selectedVariant?.name || ''}`}
                 className="aspect-[3/4] w-full object-cover transition-opacity duration-300"
               />
-
               <button
                 type="button"
                 onClick={() => setZoomOpen(true)}
@@ -181,7 +210,6 @@ export default function ProductDetails() {
               >
                 <Maximize2 size={17} />
               </button>
-
               {product.compareAtInr && product.compareAtInr > product.priceInr && (
                 <span className="absolute left-3 top-3 bg-[#D7AE3F] px-3 py-1.5 text-[10px] font-semibold tracking-wider text-white">
                   SALE
@@ -189,7 +217,6 @@ export default function ProductDetails() {
               )}
             </div>
           </div>
-
           <div className="min-w-0">
             <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_130px] lg:gap-6">
               <div className="min-w-0">
@@ -201,11 +228,9 @@ export default function ProductDetails() {
                     ADYA EXCLUSIVE
                   </span>
                 </div>
-
                 <h1 className="font-serif text-[30px] leading-[1.17] tracking-[-0.025em] text-[#38261F] sm:text-[36px] lg:text-[38px]">
                   {product.name}
                 </h1>
-
                 <div className="mt-5 flex flex-wrap items-center gap-3">
                   <div className="text-lg text-[#B6AEA5] line-through">
                     {product.compareAtInr ? (
@@ -221,13 +246,11 @@ export default function ProductDetails() {
                     </span>
                   )}
                 </div>
-
                 <p className="mt-4 max-w-2xl text-[13px] leading-6 text-[#82776E]">
                   {product.description ||
                     `Discover the elegance of ${product.name}, thoughtfully selected for weddings, festive occasions and timeless celebrations.`}
                 </p>
               </div>
-
               <aside className="grid grid-cols-2 gap-4 border-t border-[#E9E0D5] pt-5 sm:grid-cols-4 lg:grid-cols-1 lg:gap-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-1">
                 {benefits.map(({ icon: Icon, title, description }) => (
                   <div key={title} className="flex items-start gap-2.5 lg:block">
@@ -240,13 +263,11 @@ export default function ProductDetails() {
                 ))}
               </aside>
             </div>
-
             <div className="mt-6 border-t border-[#E7DED2] pt-5">
               <div className="mb-3 flex items-center gap-3 text-[13px]">
                 <span className="font-medium">Color:</span>
                 <span className="text-[#75665A]">{selectedVariant?.name}</span>
               </div>
-
               <div className="flex flex-wrap gap-3">
                 {variants.map((variant, index) => (
                   <button
@@ -278,7 +299,6 @@ export default function ProductDetails() {
                 ))}
               </div>
             </div>
-
             <div className="mt-6 flex flex-wrap items-stretch gap-3">
               <div className="flex h-11 shrink-0 items-center border border-[#D9CFC2] bg-white/50">
                 <button
@@ -301,7 +321,6 @@ export default function ProductDetails() {
                   <Plus size={14} />
                 </button>
               </div>
-
               <button
                 type="button"
                 onClick={handleAddToCart}
@@ -310,12 +329,11 @@ export default function ProductDetails() {
                 {added ? <Check size={17} /> : <ShoppingBag size={17} />}
                 {added ? 'Added to cart' : 'Add to cart'}
               </button>
-
               <button
                 type="button"
                 aria-label={wishlist ? 'Remove from wishlist' : 'Add to wishlist'}
                 aria-pressed={wishlist}
-                onClick={() => setWishlist((value) => !value)}
+                onClick={handleToggleWishlist}
                 className={`flex h-11 w-12 items-center justify-center border transition ${
                   wishlist
                     ? 'border-[#792431] bg-[#F4E7E5] text-[#792431]'
@@ -325,13 +343,11 @@ export default function ProductDetails() {
                 <Heart size={19} fill={wishlist ? 'currentColor' : 'none'} strokeWidth={1.5} />
               </button>
             </div>
-
             {added && (
               <p role="status" className="mt-3 text-xs text-[#39764A]">
                 Added to your shopping cart.
               </p>
             )}
-
             <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-[12px] text-[#67594E]">
               <button type="button" className="inline-flex items-center gap-2 transition hover:text-[#792431]">
                 <Shuffle size={15} />
@@ -346,7 +362,6 @@ export default function ProductDetails() {
                 {copied ? 'Link copied' : 'Share'}
               </button>
             </div>
-
             <div className="mt-5 border-t border-[#E7DED2] pt-4 text-[12px] leading-6">
               <p>
                 <span className="inline-block w-[90px] font-medium">SKU:</span>
@@ -366,7 +381,6 @@ export default function ProductDetails() {
             </div>
           </div>
         </section>
-
         <section className="mt-12 border-b border-[#E7DED2] sm:mt-16">
           <div className="flex flex-wrap gap-x-7 gap-y-0 sm:gap-x-9">
             {[
@@ -389,7 +403,6 @@ export default function ProductDetails() {
             ))}
           </div>
         </section>
-
         <section className="grid gap-7 py-6 lg:grid-cols-[1.4fr_1fr] lg:items-center lg:gap-10">
           <div className="text-[13px] leading-6 text-[#82776E]">
             {activeTab === 'description' && (
@@ -398,7 +411,6 @@ export default function ProductDetails() {
                   `This exquisite ${product.name} brings together traditional craftsmanship and timeless elegance. Its carefully selected design makes it a beautiful choice for weddings, festive celebrations and special occasions.`}
               </p>
             )}
-
             {activeTab === 'information' && (
               <div className="space-y-2">
                 <p><span className="font-medium text-[#514137]">Product:</span> {product.name}</p>
@@ -407,7 +419,6 @@ export default function ProductDetails() {
                 <p><span className="font-medium text-[#514137]">SKU:</span> {product.sku || product.id}</p>
               </div>
             )}
-
             {activeTab === 'shipping' && (
               <p>
                 Shipping options and delivery estimates are confirmed at checkout.
@@ -417,7 +428,6 @@ export default function ProductDetails() {
               </p>
             )}
           </div>
-
           <div className="grid grid-cols-2 gap-5 rounded-md bg-[#F3EEE5] p-5 sm:grid-cols-4 lg:gap-3 lg:p-5">
             {[
               { icon: Package, title: 'Fabric', detail: 'Premium textile' },
@@ -435,7 +445,6 @@ export default function ProductDetails() {
             ))}
           </div>
         </section>
-
         <section className="mt-6">
           <div className="mb-6 flex items-center gap-5">
             <h2 className="shrink-0 font-serif text-2xl tracking-tight sm:text-3xl">
@@ -459,11 +468,9 @@ export default function ProductDetails() {
               </Link>
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
             {relatedProducts.slice(0, 4).map((item, index) => {
               const image = item.variants?.[0]?.images?.[0] || productImages[index % productImages.length].src;
-
               return (
                 <article key={item.id} className="group min-w-0">
                   <div className="relative overflow-hidden rounded-md bg-[#F0E8DC]">
@@ -475,29 +482,35 @@ export default function ProductDetails() {
                         className="aspect-[3/4] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                       />
                     </Link>
-
                     {item.compareAtInr && item.compareAtInr > item.priceInr && (
                       <span className="absolute left-2 top-2 bg-[#D7AE3F] px-2 py-1 text-[9px] font-semibold text-white sm:left-3 sm:top-3">
                         SALE
                       </span>
                     )}
-
                     <button
                       type="button"
-                      aria-label={`Add ${item.name} to wishlist`}
+                      aria-label={
+                        wishlistIds.includes(item.id)
+                          ? `Remove ${item.name} from wishlist`
+                          : `Add ${item.name} to wishlist`
+                      }
+                      aria-pressed={wishlistIds.includes(item.id)}
+                      onClick={() => handleRelatedWishlist(item)}
                       className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[#792431] transition hover:bg-[#F3E4E2] sm:right-3 sm:top-3"
                     >
-                      <Heart size={15} strokeWidth={1.5} />
+                      <Heart
+                        size={15}
+                        strokeWidth={1.5}
+                        fill={wishlistIds.includes(item.id) ? 'currentColor' : 'none'}
+                      />
                     </button>
                   </div>
-
                   <Link
                     to={`/product/${item.id}`}
                     className="mt-3 block line-clamp-2 text-center font-serif text-[12px] leading-5 text-[#4A382E] transition hover:text-[#792431] sm:text-[13px]"
                   >
                     {item.name}
                   </Link>
-
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 text-[11px]">
                     {item.compareAtInr && (
                       <span className="text-[#B6AEA5] line-through">
@@ -514,7 +527,6 @@ export default function ProductDetails() {
           </div>
         </section>
       </div>
-
       {zoomOpen && mainImage && (
         <div
           role="dialog"
@@ -531,7 +543,6 @@ export default function ProductDetails() {
           >
             <X size={24} />
           </button>
-
           <button
             type="button"
             aria-label="Previous image"
@@ -543,14 +554,12 @@ export default function ProductDetails() {
           >
             <ArrowLeft size={21} />
           </button>
-
           <img
             src={mainImage}
             alt={product.name}
             className="max-h-[88vh] max-w-[85vw] object-contain"
             onClick={(event) => event.stopPropagation()}
           />
-
           <button
             type="button"
             aria-label="Next image"
