@@ -2,23 +2,23 @@
 @import "tailwindcss";
 
 :root {
-  --color-gold: #b8923a;
-  --color-ivory-50: #fffbf2;
-  --color-ivory-100: #fbf5e9;
-  --color-burgundy: #6b0f24;
-  --color-burgundy-900: #3a0612;
-  --color-ink: #29231f;
-  --shadow-glass: 0 8px 32px rgba(41, 35, 31, 0.08);
+  --color-gold: #C4B382;
+  --color-ivory-50: #FFF9ED;
+  --color-ivory-100: #F5E6C8;
+  --color-burgundy: #A58F5D;
+  --color-burgundy-900: #75633D;
+  --color-ink: #29251D;
+  --shadow-glass: 0 8px 32px rgba(76, 62, 36, 0.08);
 }
 
 @theme {
-  --color-gold: #b8923a;
-  --color-ivory-50: #fffbf2;
-  --color-ivory-100: #fbf5e9;
-  --color-burgundy: #6b0f24;
-  --color-burgundy-900: #3a0612;
-  --color-ink: #29231f;
-  --shadow-glass: 0 8px 32px rgba(41, 35, 31, 0.08);
+  --color-gold: #C4B382;
+  --color-ivory-50: #FFF9ED;
+  --color-ivory-100: #F5E6C8;
+  --color-burgundy: #A58F5D;
+  --color-burgundy-900: #75633D;
+  --color-ink: #29251D;
+  --shadow-glass: 0 8px 32px rgba(76, 62, 36, 0.08);
 }
 
 @layer base {
@@ -42,29 +42,27 @@
     inset: 0;
     z-index: -10;
     background:
-      radial-gradient(circle at 10% 6%, rgba(107, 15, 36, 0.2), transparent 38%),
-      radial-gradient(circle at 90% 18%, rgba(184, 146, 58, 0.26), transparent 36%),
-      radial-gradient(circle at 50% 100%, rgba(107, 15, 36, 0.12), transparent 46%),
+      radial-gradient(circle at 10% 6%, rgba(196, 179, 130, 0.2), transparent 38%),
+      radial-gradient(circle at 90% 18%, rgba(165, 143, 93, 0.22), transparent 36%),
+      radial-gradient(circle at 50% 100%, rgba(196, 179, 130, 0.12), transparent 46%),
       var(--color-ivory-100);
   }
 
   .glass-announcement {
-    @apply border-b border-gold/30 bg-burgundy-900/85 text-ivory-100 backdrop-blur-md;
+    @apply border-b border-gold/30 bg-burgundy-900/90 text-white backdrop-blur-md;
     box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
   }
 
-  
-.glass-header {
-  @apply border-b border-burgundy/20 bg-ivory-50 text-ink shadow-glass;
-}
-
+  .glass-header {
+    @apply border-b border-burgundy/20 bg-ivory-50 text-ink shadow-glass;
+  }
 
   .glass-panel {
     @apply border border-burgundy/15 bg-ivory-50/70 shadow-glass backdrop-blur-xl;
   }
 
   .glass-dark {
-    @apply border border-ivory-100/15 bg-ivory-100/5 backdrop-blur-md;
+    @apply border border-ivory-100/15 bg-burgundy-900/5 backdrop-blur-md;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
 
@@ -77,21 +75,21 @@
   }
 
   .skip-link {
-    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-md focus:bg-burgundy focus:px-4 focus:py-2 focus:text-ivory-100;
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-md focus:bg-burgundy-900 focus:px-4 focus:py-2 focus:text-white;
   }
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass-header {
-    background-color: rgba(251, 245, 233, 0.97);
+    background-color: rgba(255, 249, 237, 0.97);
   }
 
   .glass-announcement {
-    background-color: rgba(58, 6, 18, 0.97);
+    background-color: rgba(117, 99, 61, 0.97);
   }
 
   .glass-panel {
-    background-color: rgba(255, 251, 242, 0.95);
+    background-color: rgba(255, 249, 237, 0.95);
   }
 }
 
