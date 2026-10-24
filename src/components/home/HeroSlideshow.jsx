@@ -2,12 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { HERO_SLIDES } from '../../data/homepage';
+
 export default function HeroSlideshow() {
   const [active, setActive] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [headerH, setHeaderH] = useState(165); // fallback until measured
   const timerRef = useRef(null);
   const touchStart = useRef(null);
+
+  // Respect prefers-reduced-motion
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => setReducedMotion(query.matches);
@@ -15,6 +19,23 @@ export default function HeroSlideshow() {
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
   }, []);
+
+  // Measure the real header height so the hero always fits the first screen
+  useEffect(() => {
+    const header = document.querySelector('header');
+    if (!header) return undefined;
+    const measure = () => setHeaderH(Math.round(header.getBoundingClientRect().height));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(header);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  // Autoplay
   useEffect(() => {
     if (hovered || reducedMotion || HERO_SLIDES.length < 2) return undefined;
     timerRef.current = window.setInterval(() => {
@@ -22,15 +43,19 @@ export default function HeroSlideshow() {
     }, 5000);
     return () => window.clearInterval(timerRef.current);
   }, [hovered, reducedMotion]);
+
   const move = (direction) => {
     setActive((current) => (current + direction + HERO_SLIDES.length) % HERO_SLIDES.length);
   };
+
   const slide = HERO_SLIDES[active];
+
   return (
     <section
       aria-label="Featured saree collections"
       aria-roledescription="carousel"
       className="relative isolate w-full overflow-hidden bg-[#E8D5C0]"
+      style={{ '--header-h': `${headerH}px` }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onTouchStart={(event) => {
@@ -43,7 +68,9 @@ export default function HeroSlideshow() {
         touchStart.current = null;
       }}
     >
-      <div className="relative min-h-[calc(100svh-124px)] w-full sm:min-h-[calc(100svh-144px)] lg:min-h-[calc(100svh-150px)]">
+      {/* Single source of truth for the banner height */}
+      <div className="relative h-[650px] w-full sm:h-[700px] lg:h-[calc(100svh-var(--header-h))] lg:min-h-[600px] lg:max-h-[780px]">
+        {/* Slide images */}
         {HERO_SLIDES.map((item, index) => (
           <div
             key={item.title}
@@ -56,15 +83,17 @@ export default function HeroSlideshow() {
                 alt={item.alt}
                 fetchPriority={index === 0 ? 'high' : 'auto'}
                 loading={index === 0 ? 'eager' : 'lazy'}
-                className="absolute inset-0 h-full w-full object-cover object-center"
-                style={{ objectPosition: item.position || 'center center' }}
+                className="absolute inset-0 block h-full w-full object-cover"
+                style={{ objectPosition: item.position || 'center 20%' }}
               />
             </picture>
             <div className="absolute inset-0 bg-gradient-to-r from-[#24150D]/65 via-[#24150D]/25 to-transparent sm:from-[#24150D]/70 sm:via-[#24150D]/30" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#24150D]/20 via-transparent to-[#24150D]/10" />
           </div>
         ))}
-        <div className="relative z-10 mx-auto flex min-h-[calc(100svh-124px)] w-full max-w-[1440px] items-start px-6 pb-24 pt-14 sm:min-h-[calc(100svh-144px)] sm:items-center sm:px-10 sm:pt-0 lg:min-h-[calc(100svh-150px)] lg:px-[7.5%]">
+
+        {/* Text content: always exactly the same size as the banner */}
+        <div className="absolute inset-0 z-10 mx-auto flex w-full max-w-[1440px] items-start px-6 pb-24 pt-14 sm:items-center sm:px-10 sm:pb-16 sm:pt-0 lg:px-[7.5%]">
           <div key={slide.title} className="max-w-[660px] text-[#FFF9ED]">
             <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.28em] sm:text-xs sm:tracking-[0.3em]">
               {slide.eyebrow || 'A celebration of craft'}
@@ -84,6 +113,8 @@ export default function HeroSlideshow() {
             </Link>
           </div>
         </div>
+
+        {/* Dots + arrows pinned to the bottom of the banner */}
         {HERO_SLIDES.length > 1 && (
           <div className="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between px-6 pb-5 sm:px-10 sm:pb-7 lg:px-[7.5%]">
             <div className="flex items-center gap-2" role="group" aria-label="Choose featured slide">
@@ -118,6 +149,7 @@ export default function HeroSlideshow() {
             </div>
           </div>
         )}
+
         <p className="sr-only" aria-live="polite">
           Slide {active + 1} of {HERO_SLIDES.length}: {slide.title}
         </p>

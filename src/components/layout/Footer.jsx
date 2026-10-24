@@ -52,6 +52,17 @@ export default function Footer() {
           </div>
         </div>
       </div>
+      <div className="border-t border-ivory-100/15 px-4 py-4 text-center text-xs text-ivory-100/70 sm:text-sm">
+        Designed by{' '}
+        <a
+          href="https://www.instagram.com/rdr.technology/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-gold-light transition-colors hover:text-white hover:underline"
+        >
+          RDR Technologies
+        </a>
+      </div>
     </footer>
   );
 }
