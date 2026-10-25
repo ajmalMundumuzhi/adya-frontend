@@ -21,9 +21,9 @@ export default function OurStory() {
         </div>
 
         <img
-          src={storyImage}
+          src="/public/images/about image.webp"
           alt="Beautifully embroidered Indian saree in soft pastel tones"
-          className="mt-8 h-64 w-full object-cover object-center sm:mt-10 sm:h-96 lg:h-[460px]"
+          className="mt-8 h-64 w-full object-cover object-center sm:mt-10 sm:h-96 lg:h-[460px] rounded-2xl"
         />
 
         <div className="mx-auto mt-7 max-w-5xl space-y-5 text-base font-medium leading-8 sm:mt-9 sm:text-lg sm:leading-9">
