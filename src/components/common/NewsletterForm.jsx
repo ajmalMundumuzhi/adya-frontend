@@ -1,3 +1,4 @@
+
 import { useId, useState } from 'react';
 import { Send } from 'lucide-react';
 
@@ -53,11 +54,11 @@ export default function NewsletterForm({ className = '' }) {
           placeholder="Your email address"
           aria-invalid={hasError}
           aria-describedby={status === 'idle' ? undefined : messageId}
-          className="h-12 min-w-0 flex-1 rounded-full border border-ivory-100/30 bg-ivory-100/10 px-5 text-base text-ivory-100 placeholder:text-ivory-100/60"
+          className="h-14 min-w-0 flex-1 rounded-full border border-[#B49A68]/60 bg-[#F8F3E8] p-3 text-sm font-medium text-[#493829] placeholder:text-[#493829]/60 focus-visible:outline-[#B49A68] sm:h-16 sm:px-7 sm:text-xl"
         />
         <button
           type="submit"
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gold px-6 text-sm font-semibold uppercase tracking-wider text-ink transition-colors hover:bg-gold-light"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#B49A68] bg-[#F8F3E8] px-6 text-sm font-semibold uppercase tracking-wider text-[#493829] transition-colors hover:bg-[#493829] hover:text-[#F8F3E8]"
         >
           Subscribe
           <Send size={16} aria-hidden="true" />
@@ -66,7 +67,9 @@ export default function NewsletterForm({ className = '' }) {
       <p
         id={messageId}
         role={hasError ? 'alert' : 'status'}
-        className={`mt-3 min-h-[1.25rem] text-sm ${hasError ? 'text-[#ffb4a8]' : 'text-gold-light'}`}
+        className={`mt-3 min-h-[1.25rem] text-sm font-medium ${
+          hasError ? 'text-red-800' : 'text-[#493829]'
+        }`}
       >
         {status === 'idle' ? '' : MESSAGES[status]}
       </p>
