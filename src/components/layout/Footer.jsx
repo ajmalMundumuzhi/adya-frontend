@@ -26,13 +26,17 @@ export default function Footer() {
           <NewsletterForm className="mt-6 lg:mt-0" />
         </div>
         <div className="mt-12 grid gap-x-10 md:grid-cols-3 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
-          <div className="mb-8 md:col-span-3 lg:col-span-1 lg:mb-0">
-            <Logo tone="dark" />
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-[#493829]">
+          <div className="mb-8 text-center md:col-span-3 lg:col-span-1 lg:mb-0 lg:text-left">
+            <div className="flex justify-center lg:justify-start">
+              <Logo tone="dark" />
+            </div>
+
+            <p className="mx-auto mt-5 max-w-sm text-sm leading-relaxed text-[#493829] lg:mx-0">
               {SITE.description}
             </p>
+
             <SocialLinks
-              className="-ml-2 mt-4 flex"
+              className="mt-4 flex justify-center lg:justify-start"
               itemClassName="text-[#493829] hover:bg-[#D4BC98]/50 hover:text-[#493829]"
             />
           </div>

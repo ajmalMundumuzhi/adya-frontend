@@ -54,7 +54,7 @@ export default function NewsletterForm({ className = '' }) {
           placeholder="Your email address"
           aria-invalid={hasError}
           aria-describedby={status === 'idle' ? undefined : messageId}
-          className="h-14 min-w-0 flex-1 rounded-full border border-[#B49A68]/60 bg-[#F8F3E8] p-3 text-sm font-medium text-[#493829] placeholder:text-[#493829]/60 focus-visible:outline-[#B49A68] sm:h-16 sm:px-7 sm:text-xl"
+          className="h-14 min-w-0 flex-1 rounded-full border border-[#B49A68]/60 bg-[#F8F3E8] p-3 text-sm text-[#493829] placeholder:text-[#493829]/60 focus-visible:outline-[#B49A68] sm:h-12 sm:px-6 sm:text-sm"
         />
         <button
           type="submit"

@@ -5,7 +5,7 @@ import BrandStory from '../components/home/BrandStory';
 import TrustBenefits from '../components/home/TrustBenefits';
 import Testimonials from '../components/home/Testimonials';
 import SocialGallery from '../components/home/SocialGallery';
-import Newsletter from '../components/home/Newsletter';
+// import Newsletter from '../components/home/Newsletter';
 import SeasonalBanner from '../components/home/SeasonalBanner';
 import { HOME_PRODUCTS } from '../data/homepage';
 
@@ -26,7 +26,7 @@ export default function Home() {
       <TrustBenefits />
       <Testimonials />
       <SocialGallery />
-      <Newsletter />
+      {/* <Newsletter /> */}
     </div>
   );
 }
