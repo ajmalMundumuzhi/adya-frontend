@@ -21,6 +21,7 @@ const utilityClass =
 
 export default function MobileNavigation({ open, onClose }) {
   const [expanded, setExpanded] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const closeRef = useRef(null);
   const wasOpen = useRef(false);
   const location = useLocation();
@@ -44,11 +45,9 @@ export default function MobileNavigation({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return undefined;
-
     const handleKey = (event) => {
       if (event.key === 'Escape') onClose();
     };
-
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
@@ -58,7 +57,6 @@ export default function MobileNavigation({ open, onClose }) {
     const handleChange = (event) => {
       if (event.matches) onClose();
     };
-
     media.addEventListener('change', handleChange);
     return () => media.removeEventListener('change', handleChange);
   }, [onClose]);
@@ -89,7 +87,6 @@ export default function MobileNavigation({ open, onClose }) {
       >
         <div className="flex h-[68px] shrink-0 items-center justify-between border-b border-[#493829]/15 px-5">
           <Logo onClick={onClose} />
-
           <button
             ref={closeRef}
             type="button"
@@ -171,9 +168,13 @@ export default function MobileNavigation({ open, onClose }) {
 
         <ul className="mt-3 px-5">
           <li className="border-b border-[#493829]/15">
-            <Link to="/account" onClick={onClose} className={utilityClass}>
+            <Link
+              to={isLoggedIn ? '/account' : '/login'}
+              onClick={onClose}
+              className={utilityClass}
+            >
               <User size={22} strokeWidth={1.5} aria-hidden="true" />
-              <span className="flex-1">My Account</span>
+              <span>{isLoggedIn ? 'My Account' : 'Login'}</span>
             </Link>
           </li>
 
