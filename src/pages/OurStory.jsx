@@ -1,9 +1,6 @@
 
 import { Link } from 'react-router-dom';
 
-const storyImage =
-  'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&q=85';
-
 export default function OurStory() {
   return (
     <main className="bg-[#F8F3E8] text-[#493829]">
@@ -21,7 +18,7 @@ export default function OurStory() {
         </div>
 
         <img
-          src="/public/images/about image.webp"
+          src="/images/about image.webp"
           alt="Beautifully embroidered Indian saree in soft pastel tones"
           className="mt-8 h-64 w-full object-cover object-center sm:mt-10 sm:h-96 lg:h-[460px] rounded-2xl"
         />
