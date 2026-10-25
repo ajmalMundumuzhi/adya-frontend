@@ -1,21 +1,30 @@
+
 @import "tailwindcss";
 :root {
-  --color-gold: #C4B382;
-  --color-ivory-50: #FFF9ED;
-  --color-ivory-100: #F5E6C8;
-  --color-burgundy: #A58F5D;
-  --color-burgundy-900: #75633D;
-  --color-ink: #29251D;
-  --shadow-glass: 0 8px 32px rgba(76, 62, 36, 0.08);
+  --color-gold: #B49A68;
+  --color-gold-light: #D4BC98;
+  --color-ivory-50: #F8F3E8;
+  --color-ivory-100: #F8F3E8;
+  --color-burgundy: #D4BC98;
+  --color-burgundy-800: #5B4835;
+  --color-burgundy-900: #493829;
+  --color-ink: #493829;
+  --shadow-glass: 0 8px 32px rgba(73, 56, 41, 0.08);
 }
 @theme {
-  --color-gold: #C4B382;
-  --color-ivory-50: #FFF9ED;
-  --color-ivory-100: #F5E6C8;
-  --color-burgundy: #A58F5D;
-  --color-burgundy-900: #75633D;
-  --color-ink: #29251D;
-  --shadow-glass: 0 8px 32px rgba(76, 62, 36, 0.08);
+  --color-gold: #B49A68;
+  --color-gold-light: #D4BC98;
+  --color-ivory-50: #F8F3E8;
+  --color-ivory-100: #F8F3E8;
+  --color-burgundy: #D4BC98;
+  --color-burgundy-800: #5B4835;
+  --color-burgundy-900: #493829;
+  --color-ink: #493829;
+  --color-champagne: #D4BC98;
+  --color-warm-ivory: #F8F3E8;
+  --color-deep-brown: #493829;
+  --color-antique-gold: #B49A68;
+  --shadow-glass: 0 8px 32px rgba(73, 56, 41, 0.08);
 }
 @layer base {
   html {
@@ -54,9 +63,9 @@
     inset: 0;
     z-index: -10;
     background:
-      radial-gradient(circle at 10% 6%, rgba(196, 179, 130, 0.2), transparent 38%),
-      radial-gradient(circle at 90% 18%, rgba(165, 143, 93, 0.22), transparent 36%),
-      radial-gradient(circle at 50% 100%, rgba(196, 179, 130, 0.12), transparent 46%),
+      radial-gradient(circle at 10% 6%, rgba(212, 188, 152, 0.22), transparent 38%),
+      radial-gradient(circle at 90% 18%, rgba(180, 154, 104, 0.14), transparent 36%),
+      radial-gradient(circle at 50% 100%, rgba(212, 188, 152, 0.12), transparent 46%),
       var(--color-ivory-100);
   }
   .glass-announcement {
@@ -85,13 +94,13 @@
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass-header {
-    background-color: rgba(255, 249, 237, 0.97);
+    background-color: rgba(248, 243, 232, 0.97);
   }
   .glass-announcement {
-    background-color: rgba(117, 99, 61, 0.97);
+    background-color: rgba(73, 56, 41, 0.97);
   }
   .glass-panel {
-    background-color: rgba(255, 249, 237, 0.95);
+    background-color: rgba(248, 243, 232, 0.95);
   }
 }
 @media (prefers-reduced-motion: reduce) {

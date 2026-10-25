@@ -8,6 +8,7 @@ import Shop from './pages/Shop';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Wishlist from './pages/Wishlist';
+import OurStory from './pages/OurStory';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           path="wishlist"
           element={<PlaceholderPage title="Wishlist" />}
         />
+        <Route path="/our-story" element={<OurStory />} />
         <Route path="*" element={<RoutePlaceholder />} />
       </Route>
     </Routes>
