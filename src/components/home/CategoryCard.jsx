@@ -20,18 +20,16 @@ export default function CategoryCard({
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#493829]/65 via-[#493829]/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#493829]/45 via-transparent to-transparent" />
 
         {showDetails && (
           <div className="absolute bottom-0 left-0 right-0 p-5 text-[#F8F3E8] sm:p-7">
-            <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-[#F8F3E8]/85">
+            <p className="text-[10px] font-medium uppercase tracking-[0.24em]">
               Discover the collection
             </p>
-
             <h3 className="mt-2 font-display text-2xl sm:text-3xl">
               {category.name}
             </h3>
-
             <p className="mt-2 text-sm text-[#F8F3E8]/85">
               {category.label}
             </p>
