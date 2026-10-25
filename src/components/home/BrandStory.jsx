@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function BrandStory() {
   return (
-    <section className="overflow-hidden bg-[#493829] text-[#F8F3E8]">
+    <section className="overflow-hidden bg-[#D4BC98] text-[#493829]">
       <div className="mx-auto grid max-w-7xl md:grid-cols-2">
         <div className="relative min-h-[360px] md:min-h-[570px]">
           <img
@@ -12,11 +12,11 @@ export default function BrandStory() {
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#493829]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#493829]/25 to-transparent" />
         </div>
 
         <div className="flex flex-col justify-center px-6 py-14 sm:px-10 sm:py-20 lg:px-16">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#D4BC98]">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#493829]/75">
             The ADYA point of view
           </p>
 
@@ -24,20 +24,20 @@ export default function BrandStory() {
             A story of texture, colour and belonging.
           </h2>
 
-          <p className="mt-6 max-w-lg text-sm leading-7 text-[#F8F3E8]/85 sm:text-base sm:leading-8">
+          <p className="mt-6 max-w-lg text-sm leading-7 text-[#493829]/85 sm:text-base sm:leading-8">
             A saree can hold a memory, mark a new beginning or simply make an
             ordinary day feel special. ADYA brings together a considered edit
             of Indian-inspired drapes for the moments you make your own.
           </p>
 
-          <p className="mt-4 max-w-lg text-sm leading-7 text-[#F8F3E8]/85 sm:text-base sm:leading-8">
+          <p className="mt-4 max-w-lg text-sm leading-7 text-[#493829]/85 sm:text-base sm:leading-8">
             Our story is still being written. Explore the collection and find
             the pieces that speak to your personal style.
           </p>
 
           <Link
             to="/our-story"
-            className="mt-8 inline-flex min-h-12 w-fit items-center gap-3 rounded-full border border-[#D4BC98]/70 px-6 py-3 text-sm font-medium text-[#F8F3E8] transition-colors hover:bg-[#D4BC98] hover:text-[#493829]"
+            className="mt-8 inline-flex min-h-12 w-fit items-center gap-3 rounded-full border border-[#493829]/50 px-6 py-3 text-sm font-semibold text-[#493829] transition-colors hover:bg-[#F8F3E8] hover:border-[#B49A68]"
           >
             Discover our story
             <ArrowUpRight size={17} aria-hidden="true" />
