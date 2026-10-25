@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -7,11 +8,10 @@ export default function HeroSlideshow() {
   const [active, setActive] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const [headerH, setHeaderH] = useState(165); // fallback until measured
+  const [headerH, setHeaderH] = useState(165);
   const timerRef = useRef(null);
   const touchStart = useRef(null);
 
-  // Respect prefers-reduced-motion
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => setReducedMotion(query.matches);
@@ -20,7 +20,6 @@ export default function HeroSlideshow() {
     return () => query.removeEventListener('change', update);
   }, []);
 
-  // Measure the real header height so the hero always fits the first screen
   useEffect(() => {
     const header = document.querySelector('header');
     if (!header) return undefined;
@@ -35,7 +34,6 @@ export default function HeroSlideshow() {
     };
   }, []);
 
-  // Autoplay
   useEffect(() => {
     if (hovered || reducedMotion || HERO_SLIDES.length < 2) return undefined;
     timerRef.current = window.setInterval(() => {
@@ -54,7 +52,7 @@ export default function HeroSlideshow() {
     <section
       aria-label="Featured saree collections"
       aria-roledescription="carousel"
-      className="relative isolate w-full overflow-hidden bg-[#E8D5C0]"
+      className="relative isolate w-full overflow-hidden bg-[#D4BC98]"
       style={{ '--header-h': `${headerH}px` }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -68,9 +66,7 @@ export default function HeroSlideshow() {
         touchStart.current = null;
       }}
     >
-      {/* Single source of truth for the banner height */}
-      <div className="relative h-[650px] w-full sm:h-[700px] lg:h-[calc(100svh-var(--header-h))] lg:min-h-[600px] lg:max-h-[780px]">
-        {/* Slide images */}
+      <div className="relative h-[520px] w-full sm:h-[620px] lg:h-[calc(100svh-var(--header-h))] lg:min-h-[600px] lg:max-h-[780px]">
         {HERO_SLIDES.map((item, index) => (
           <div
             key={item.title}
@@ -87,34 +83,32 @@ export default function HeroSlideshow() {
                 style={{ objectPosition: item.position || 'center 20%' }}
               />
             </picture>
-            <div className="absolute inset-0 bg-gradient-to-r from-[#24150D]/65 via-[#24150D]/25 to-transparent sm:from-[#24150D]/70 sm:via-[#24150D]/30" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#24150D]/20 via-transparent to-[#24150D]/10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#493829]/75 via-[#493829]/40 to-transparent sm:from-[#493829]/80 sm:via-[#493829]/35" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#493829]/25 via-transparent to-[#493829]/10" />
           </div>
         ))}
 
-        {/* Text content: always exactly the same size as the banner */}
         <div className="absolute inset-0 z-10 mx-auto flex w-full max-w-[1440px] items-start px-6 pb-24 pt-14 sm:items-center sm:px-10 sm:pb-16 sm:pt-0 lg:px-[7.5%]">
-          <div key={slide.title} className="max-w-[660px] text-[#FFF9ED]">
-            <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.28em] sm:text-xs sm:tracking-[0.3em]">
+          <div key={slide.title} className="max-w-[660px] text-[#F8F3E8]">
+            <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#D4BC98] sm:text-sm sm:tracking-[0.3em]">
               {slide.eyebrow || 'A celebration of craft'}
             </p>
-            <h1 className="max-w-[650px] font-display text-[42px] font-medium leading-[1.05] tracking-[-0.045em] sm:text-6xl lg:text-[clamp(64px,5vw,88px)]">
+            <h1 className="max-w-[650px] font-display text-[42px] font-semibold leading-[1.05] tracking-[-0.035em] sm:text-6xl lg:text-[clamp(64px,5vw,88px)]">
               {slide.title}
             </h1>
-            <p className="mt-5 max-w-[570px] text-sm leading-6 text-[#FFF9ED]/95 sm:mt-7 sm:text-lg sm:leading-9">
+            <p className="mt-5 max-w-[570px] text-base font-medium leading-7 text-[#F8F3E8] sm:mt-7 sm:text-lg sm:leading-9">
               {slide.description}
             </p>
             <Link
               to={slide.to}
-              className="mt-7 inline-flex min-h-12 items-center justify-center bg-[#D8B987] px-6 py-3 text-sm font-medium text-[#493322] transition-colors hover:bg-[#F5E6C8] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D8B987] sm:mt-9 sm:min-w-[245px] sm:justify-between sm:px-8"
+              className="mt-7 inline-flex min-h-12 items-center justify-center gap-5 border border-[#B49A68] bg-[#F8F3E8] px-6 py-3 text-base font-semibold text-[#493829] transition-colors hover:bg-[#D4BC98] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#B49A68] sm:mt-9 sm:min-w-[245px] sm:justify-between sm:px-8"
             >
               {slide.cta || 'Shop new arrivals'}
-              <ArrowRight size={18} className="ml-5" aria-hidden="true" />
+              <ArrowRight size={18} aria-hidden="true" />
             </Link>
           </div>
         </div>
 
-        {/* Dots + arrows pinned to the bottom of the banner */}
         {HERO_SLIDES.length > 1 && (
           <div className="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between px-6 pb-5 sm:px-10 sm:pb-7 lg:px-[7.5%]">
             <div className="flex items-center gap-2" role="group" aria-label="Choose featured slide">
@@ -125,7 +119,7 @@ export default function HeroSlideshow() {
                   onClick={() => setActive(index)}
                   aria-label={`Show slide ${index + 1}: ${item.title}`}
                   aria-current={active === index ? 'true' : undefined}
-                  className={`h-2 rounded-full ${reducedMotion ? '' : 'transition-all'} ${active === index ? 'w-8 bg-[#F5E6C8]' : 'w-2 bg-white/60 hover:bg-white'}`}
+                  className={`h-2 rounded-full ${reducedMotion ? '' : 'transition-all'} ${active === index ? 'w-8 bg-[#F8F3E8]' : 'w-2 bg-[#F8F3E8]/60 hover:bg-[#F8F3E8]'}`}
                 />
               ))}
             </div>
@@ -134,7 +128,7 @@ export default function HeroSlideshow() {
                 type="button"
                 onClick={() => move(-1)}
                 aria-label="Previous slide"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/60 text-white transition-colors hover:bg-white/15 sm:h-11 sm:w-11"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#F8F3E8]/70 text-[#F8F3E8] transition-colors hover:bg-[#F8F3E8]/15 sm:h-11 sm:w-11"
               >
                 <ArrowLeft size={18} aria-hidden="true" />
               </button>
@@ -142,7 +136,7 @@ export default function HeroSlideshow() {
                 type="button"
                 onClick={() => move(1)}
                 aria-label="Next slide"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/60 text-white transition-colors hover:bg-white/15 sm:h-11 sm:w-11"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#F8F3E8]/70 text-[#F8F3E8] transition-colors hover:bg-[#F8F3E8]/15 sm:h-11 sm:w-11"
               >
                 <ArrowRight size={18} aria-hidden="true" />
               </button>

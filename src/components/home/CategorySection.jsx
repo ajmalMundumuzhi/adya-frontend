@@ -1,4 +1,3 @@
-
 import { useRef } from 'react';
 import { SAREE_CATEGORIES } from '../../data/homepage';
 import SectionHeading from './SectionHeading';
