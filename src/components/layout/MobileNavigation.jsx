@@ -10,14 +10,14 @@ import useCart from '../../hooks/useCart';
 import useScrollLock from '../../hooks/useScrollLock';
 
 const rowClass = ({ isActive }) =>
-  `flex min-h-[62px] flex-1 items-center px-3 py-4 font-display text-xl transition-colors sm:text-2xl ${
+  `flex min-h-[52px] flex-1 items-center px-3 py-3 font-display text-base transition-colors sm:text-lg ${
     isActive
       ? 'font-semibold text-[#493829]'
       : 'text-[#493829] hover:text-[#B49A68]'
   }`;
 
 const utilityClass =
-  'flex min-h-[62px] items-center gap-5 px-3 py-4 font-display text-lg text-[#493829] transition-colors hover:bg-[#D4BC98]/20 sm:text-xl';
+  'flex min-h-[54px] items-center gap-4 px-3 py-3 font-display text-base text-[#493829] transition-colors hover:bg-[#D4BC98]/20 sm:text-lg';
 
 export default function MobileNavigation({ open, onClose }) {
   const [expanded, setExpanded] = useState(null);
@@ -44,9 +44,11 @@ export default function MobileNavigation({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return undefined;
+
     const handleKey = (event) => {
       if (event.key === 'Escape') onClose();
     };
+
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
@@ -56,6 +58,7 @@ export default function MobileNavigation({ open, onClose }) {
     const handleChange = (event) => {
       if (event.matches) onClose();
     };
+
     media.addEventListener('change', handleChange);
     return () => media.removeEventListener('change', handleChange);
   }, [onClose]);
@@ -84,16 +87,17 @@ export default function MobileNavigation({ open, onClose }) {
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#493829]/15 px-5">
+        <div className="flex h-[68px] shrink-0 items-center justify-between border-b border-[#493829]/15 px-5">
           <Logo onClick={onClose} />
+
           <button
             ref={closeRef}
             type="button"
             aria-label="Close menu"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-[#493829] hover:bg-[#D4BC98]/35"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-[#493829] hover:bg-[#D4BC98]/35"
           >
-            <X size={23} aria-hidden="true" />
+            <X size={21} aria-hidden="true" />
           </button>
         </div>
 
@@ -112,11 +116,11 @@ export default function MobileNavigation({ open, onClose }) {
                         aria-expanded={isExpanded}
                         aria-controls={`mobile-nav-${item.key}`}
                         onClick={() => setExpanded(isExpanded ? null : item.key)}
-                        className="flex min-h-[62px] w-full flex-row items-center justify-between px-3 py-4 text-left font-display text-xl text-[#493829] transition-colors hover:text-[#B49A68] sm:text-2xl"
+                        className="flex min-h-[52px] w-full flex-row items-center justify-between px-3 py-3 text-left font-display text-base text-[#493829] transition-colors hover:text-[#B49A68] sm:text-lg"
                       >
                         <span>{item.label}</span>
                         <ChevronDown
-                          size={21}
+                          size={18}
                           aria-hidden="true"
                           className={`shrink-0 transition-transform ${
                             isExpanded ? 'rotate-180' : ''
@@ -127,7 +131,7 @@ export default function MobileNavigation({ open, onClose }) {
                       {isExpanded && (
                         <ul
                           id={`mobile-nav-${item.key}`}
-                          className="mb-4 ml-4 border-l border-[#B49A68]/60 pl-4"
+                          className="mb-3 ml-4 border-l border-[#B49A68]/60 pl-3"
                         >
                           {children.map((child) => (
                             <li key={child.to}>
@@ -135,7 +139,7 @@ export default function MobileNavigation({ open, onClose }) {
                                 to={child.to}
                                 onClick={onClose}
                                 className={({ isActive }) =>
-                                  `flex min-h-11 items-center px-3 text-sm transition-colors ${
+                                  `flex min-h-10 items-center px-3 text-sm transition-colors ${
                                     isActive
                                       ? 'font-semibold text-[#493829]'
                                       : 'text-[#493829]/75 hover:text-[#B49A68]'
@@ -168,24 +172,24 @@ export default function MobileNavigation({ open, onClose }) {
         <ul className="mt-3 px-5">
           <li className="border-b border-[#493829]/15">
             <Link to="/account" onClick={onClose} className={utilityClass}>
-              <User size={25} strokeWidth={1.5} aria-hidden="true" />
+              <User size={22} strokeWidth={1.5} aria-hidden="true" />
               <span className="flex-1">My Account</span>
             </Link>
           </li>
 
           <li className="border-b border-[#493829]/15">
             <Link to="/wishlist" onClick={onClose} className={utilityClass}>
-              <Heart size={25} strokeWidth={1.5} aria-hidden="true" />
+              <Heart size={22} strokeWidth={1.5} aria-hidden="true" />
               <span className="flex-1">Wishlist</span>
             </Link>
           </li>
 
           <li className="border-b border-[#493829]/15">
             <Link to="/cart" onClick={onClose} className={utilityClass}>
-              <ShoppingBag size={25} strokeWidth={1.5} aria-hidden="true" />
+              <ShoppingBag size={22} strokeWidth={1.5} aria-hidden="true" />
               <span className="flex-1">Shopping cart</span>
               {itemCount > 0 && (
-                <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-[#D4BC98] px-2 text-sm font-semibold text-[#493829]">
+                <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-[#D4BC98] px-2 text-xs font-semibold text-[#493829]">
                   {itemCount}
                 </span>
               )}
