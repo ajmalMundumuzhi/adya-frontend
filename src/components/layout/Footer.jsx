@@ -13,18 +13,7 @@ export default function Footer() {
   const { country } = useCurrency();
   return (
     <footer className="mt-20 bg-gradient-to-b from-[#D4BC98] to-[#F8F3E8] text-[#493829]">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <div className="rounded-2xl border border-[#B49A68]/40 bg-[#F8F3E8] p-6 shadow-[0_8px_32px_rgba(73,56,41,0.08)] sm:p-8 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
-          <div>
-            <h2 className="font-display text-3xl font-semibold text-[#493829] sm:text-4xl">
-              Join the {SITE.name} circle
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#493829] sm:text-base">
-              Be the first to hear about new handloom arrivals, festive edits and artisan stories.
-            </p>
-          </div>
-          <NewsletterForm className="mt-6 lg:mt-0" />
-        </div>
+      <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8 lg:py-16">
         <div className="mt-12 grid gap-x-10 md:grid-cols-3 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div className="mb-8 text-center md:col-span-3 lg:col-span-1 lg:mb-0 lg:text-left">
             <div className="flex justify-center lg:justify-start">
@@ -36,7 +25,7 @@ export default function Footer() {
             </p>
 
             <SocialLinks
-              className="mt-4 flex justify-center lg:justify-start"
+              className="flex justify-center mt-4 lg:justify-start"
               itemClassName="text-[#493829] hover:bg-[#D4BC98]/50 hover:text-[#493829]"
             />
           </div>

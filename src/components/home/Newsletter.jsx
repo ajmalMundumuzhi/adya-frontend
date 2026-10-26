@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 
@@ -22,7 +21,7 @@ export default function Newsletter() {
   return (
     <section className="px-5 pb-16 sm:px-8 sm:pb-20 lg:px-12">
       <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl border border-[#B49A68]/30 bg-[#D4BC98] px-5 py-12 text-[#493829] shadow-[0_8px_32px_rgba(73,56,41,0.08)] sm:px-10 sm:py-14 lg:px-16">
-        <div className="mx-auto max-w-2xl text-center">
+        <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#493829] sm:text-sm">
             Letters from ADYA
           </p>
@@ -32,7 +31,7 @@ export default function Newsletter() {
           <p className="mx-auto mt-4 max-w-xl text-base font-medium leading-7 text-[#493829]/85 sm:text-lg">
             Get collection inspiration, styling notes and news from the world of sarees.
           </p>
-          <form noValidate onSubmit={submit} className="mx-auto mt-7 max-w-xl">
+          <form noValidate onSubmit={submit} className="max-w-xl mx-auto mt-7">
             <label htmlFor="adya-newsletter-email" className="sr-only">
               Email address
             </label>
