@@ -18,11 +18,11 @@ export default function Home() {
     <div>
       <HeroSlideshow />
       <CategorySection />
-      <ProductSection eyebrow="Seasonal selection" title="Seasonal elegance" description="A curated edit of sarees for celebrations, thoughtful gifting and moments worth remembering." products={seasonal} linkTo="/collections/festive-edit" linkLabel="Explore the edit" tone="soft" />
-      <BrandStory />
+      {/* <ProductSection eyebrow="Seasonal selection" title="Seasonal elegance" description="A curated edit of sarees for celebrations, thoughtful gifting and moments worth remembering." products={seasonal} linkTo="/collections/festive-edit" linkLabel="Explore the edit" tone="soft" /> */}
       <ProductSection eyebrow="Just arrived" title="New arrivals" description="Fresh finds selected to bring a new perspective to timeless dressing." products={arrivals} linkTo="/shop" linkLabel="View all new arrivals" />
-      <SeasonalBanner />
+      <BrandStory />
       <ProductSection eyebrow="Loved classics" title="Bestsellers" description="Discover a few of our sample collection favourites. Product details are placeholders for frontend review." products={bestsellers} linkTo="/shop" linkLabel="Shop all sarees" tone="soft" />
+      <SeasonalBanner />
       <TrustBenefits />
       <Testimonials />
       <SocialGallery />
