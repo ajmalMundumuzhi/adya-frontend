@@ -13,6 +13,8 @@ import Account from './pages/Account';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Terms from './pages/Terms';
+import Policy from './pages/Policy';
+import RefundPolicy from './pages/RefundPolicy';
 
 export default function App() {
   return (
@@ -29,6 +31,8 @@ export default function App() {
         />
         <Route path="/our-story" element={<OurStory />} />
         <Route path='/terms-and-conditions' element={<Terms />} />
+        <Route path='/privacy-policy' element={<Policy />} />
+        <Route path='/return-policy' element={<RefundPolicy />} />
         <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
