@@ -10,6 +10,8 @@ import Cart from './pages/Cart';
 import Wishlist from './pages/Wishlist';
 import OurStory from './pages/OurStory';
 import Account from './pages/Account';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
         />
         <Route path="/our-story" element={<OurStory />} />
         <Route path="/account" element={<Account />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="*" element={<RoutePlaceholder />} />
       </Route>
     </Routes>
