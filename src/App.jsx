@@ -12,6 +12,7 @@ import OurStory from './pages/OurStory';
 import Account from './pages/Account';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Terms from './pages/Terms';
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
           element={<PlaceholderPage title="Wishlist" />}
         />
         <Route path="/our-story" element={<OurStory />} />
+        <Route path='/terms-and-conditions' element={<Terms />} />
         <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
