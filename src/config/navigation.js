@@ -39,16 +39,16 @@ export const SHOP_LINKS = [
 ];
 
 export const SERVICE_LINKS = [
-  { label: 'Contact Us', to: '/contact' },
+  { label: 'Contact Us', to: '/OurStory' },
   { label: 'FAQs', to: '/faqs' },
-  { label: 'Shipping', to: '/shipping' },
-  { label: 'Returns and Exchange Policy', to: '/returns-and-exchange' },
+  // { label: 'Shipping', to: '/shipping' },
 ];
 
 export const COMPANY_LINKS = [
   { label: 'Our Story', to: '/our-story' },
   { label: 'Privacy Policy', to: '/privacy-policy' },
   { label: 'Terms & Conditions', to: '/terms-and-conditions' },
+  { label: 'Returns & Refunds Policy', to: '/return-policy' },
 ];
 
 export const SOCIAL_LINKS = [
