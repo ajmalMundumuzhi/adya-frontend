@@ -12,10 +12,13 @@ import {
   ArrowLeft,
   Check,
 } from 'lucide-react'
+import { useNavigate } from "react-router-dom";
+import { registerCustomer } from "../services/auth.service";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -88,11 +91,22 @@ const Register = () => {
     setIsSubmitting(true)
 
     try {
+      await registerCustomer({
+        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        password: formData.password,
+      });
+
+      navigate("/");
+    } catch (error) {
       setErrors({
-        general: 'Account registration is not connected yet.',
-      })
+        general:
+          error.response?.data?.message ||
+          "Unable to create your account. Please try again.",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 

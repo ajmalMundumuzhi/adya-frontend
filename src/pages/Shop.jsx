@@ -1,28 +1,22 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { SlidersHorizontal, ChevronDown, ChevronRight } from 'lucide-react';
+
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import {
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react';
 import ProductGrid from '../components/products/ProductGrid';
-import { HOME_PRODUCTS, SAREE_CATEGORIES } from '../data/homepage';
+import {
+  getProductsPage,
+  getCategories,
+} from '../services/store.service';
 
 const PAGE_SIZE = 9;
 
-const PRODUCTS = HOME_PRODUCTS.map((product) => ({
-  ...product,
-  category:
-    product.category ||
-    (product.id === 'kanjivaram-ruby'
-      ? 'Kanjivaram Silk'
-      : product.id === 'banarasi-ivory'
-        ? 'Banarasi Sarees'
-        : product.id === 'chanderi-gold'
-          ? 'Handloom Cotton'
-          : 'Organza Sarees'),
-  color: product.color || 'Other',
-  inStock: product.inStock ?? true,
-  isNew: product.tag === 'New arrival',
-}));
-
 export default function Shop() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [category, setCategory] = useState('All');
   const [color, setColor] = useState('All');
   const [minPrice, setMinPrice] = useState(0);
@@ -33,45 +27,138 @@ export default function Shop() {
   const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const filteredProducts = useMemo(() => {
-    let result = PRODUCTS.filter((product) => {
-      const matchesCategory =
-        category === 'All' || product.category === category;
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-      const matchesColor =
-        color === 'All' || product.color === color;
+  useEffect(() => {
+    let cancelled = false;
 
-      const matchesPrice =
-        product.priceInr >= minPrice &&
-        product.priceInr <= maxPrice;
+    async function loadCategories() {
+      try {
+        const data = await getCategories();
 
-      const matchesSale =
-        !saleOnly ||
-        (product.compareAtInr !== null &&
-          product.compareAtInr > product.priceInr);
-
-      const matchesStock = !inStockOnly || product.inStock;
-
-      return (
-        matchesCategory &&
-        matchesColor &&
-        matchesPrice &&
-        matchesSale &&
-        matchesStock
-      );
-    });
-
-    if (sortBy === 'price-low') {
-      result = [...result].sort((a, b) => a.priceInr - b.priceInr);
-    } else if (sortBy === 'price-high') {
-      result = [...result].sort((a, b) => b.priceInr - a.priceInr);
-    } else if (sortBy === 'newest') {
-      result = [...result].sort(
-        (a, b) => Number(b.isNew) - Number(a.isNew)
-      );
+        if (!cancelled) {
+          setCategories(
+            data.filter((item) => item.isActive !== false)
+          );
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Category loading failed:', err);
+        }
+      }
     }
 
-    return result;
+    loadCategories();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const categorySlug = searchParams.get('category');
+
+    if (!categorySlug) {
+      setCategory('All');
+      return;
+    }
+
+    const matchedCategory = categories.find(
+      (item) => item.slug === categorySlug
+    );
+
+    if (matchedCategory) {
+      setCategory(matchedCategory._id);
+      setPage(1);
+    }
+  }, [categories, searchParams]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProducts() {
+      try {
+        setLoading(true);
+        setError('');
+
+        const params = {
+          page,
+          limit: PAGE_SIZE,
+          sort: sortBy === 'featured' ? 'newest' : sortBy,
+        };
+
+        if (category !== 'All') {
+          params.categoryId = category;
+        }
+
+        if (color !== 'All') {
+          params.color = color;
+        }
+
+        if (minPrice > 0) {
+          params.minPrice = minPrice;
+        }
+
+        if (maxPrice < 25000) {
+          params.maxPrice = maxPrice;
+        }
+
+        if (saleOnly) {
+          params.onSale = true;
+        }
+
+        if (inStockOnly) {
+          params.inStock = true;
+        }
+
+        const response = await getProductsPage(params);
+
+        const formattedProducts = (response.products || [])
+          .filter((product) => product.isActive !== false)
+          .map((product) => ({
+            id: product.slug || product._id,
+            name: product.name,
+            priceInr: product.price,
+            compareAtInr: product.compareAtPrice,
+            image:
+              product.imagePath ||
+              product.images?.[0] ||
+              '',
+            backImage: product.images?.[1] || '',
+            tag: product.stock > 0 ? 'In stock' : 'Sold out',
+            to: `/product/${product.slug || product._id}`,
+          }));
+
+        if (!cancelled) {
+          setProducts(formattedProducts);
+          setTotal(response.total || 0);
+          setTotalPages(Math.max(1, response.pages || 1));
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Product loading failed:', err);
+          setError('Unable to load products. Please try again later.');
+          setProducts([]);
+          setTotal(0);
+          setTotalPages(1);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     category,
     color,
@@ -80,17 +167,10 @@ export default function Shop() {
     saleOnly,
     inStockOnly,
     sortBy,
+    page,
   ]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredProducts.length / PAGE_SIZE)
-  );
-
-  const visibleProducts = filteredProducts.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
-  );
+  const visibleProducts = products;
 
   const resetFilters = () => {
     setCategory('All');
@@ -99,7 +179,9 @@ export default function Shop() {
     setMaxPrice(25000);
     setSaleOnly(false);
     setInStockOnly(false);
+    setSortBy('featured');
     setPage(1);
+    setSearchParams({}, { replace: true });
   };
 
   const changeFilter = (setter, value) => {
@@ -127,7 +209,10 @@ export default function Shop() {
                   setMinPrice,
                   Math.max(
                     0,
-                    Math.min(Number(event.target.value) || 0, maxPrice)
+                    Math.min(
+                      Number(event.target.value) || 0,
+                      maxPrice
+                    )
                   )
                 )
               }
@@ -147,7 +232,10 @@ export default function Shop() {
                   setMaxPrice,
                   Math.max(
                     minPrice,
-                    Math.min(Number(event.target.value) || 0, 25000)
+                    Math.min(
+                      Number(event.target.value) || 0,
+                      25000
+                    )
                   )
                 )
               }
@@ -167,23 +255,34 @@ export default function Shop() {
         </h2>
 
         <div className="mt-4 space-y-3">
-          {['All', ...SAREE_CATEGORIES.map((item) => item.name)].map(
-            (item) => (
-              <label
-                key={item}
-                className="flex cursor-pointer items-center gap-3 text-sm text-ink/75"
-              >
-                <input
-                  type="radio"
-                  name="category"
-                  checked={category === item}
-                  onChange={() => changeFilter(setCategory, item)}
-                  className="accent-burgundy"
-                />
-                {item === 'All' ? 'All categories' : item}
-              </label>
-            )
-          )}
+          <label className="flex cursor-pointer items-center gap-3 text-sm text-ink/75">
+            <input
+              type="radio"
+              name="category"
+              checked={category === 'All'}
+              onChange={() => changeFilter(setCategory, 'All')}
+              className="accent-burgundy"
+            />
+            All categories
+          </label>
+
+          {categories.map((item) => (
+            <label
+              key={item._id}
+              className="flex cursor-pointer items-center gap-3 text-sm text-ink/75"
+            >
+              <input
+                type="radio"
+                name="category"
+                checked={category === item._id}
+                onChange={() =>
+                  changeFilter(setCategory, item._id)
+                }
+                className="accent-burgundy"
+              />
+              {item.name}
+            </label>
+          ))}
         </div>
       </div>
 
@@ -202,9 +301,12 @@ export default function Shop() {
           <option value="All">Any color</option>
           <option value="Red">Red</option>
           <option value="Gold">Gold</option>
+          <option value="Green">Green</option>
           <option value="Ivory">Ivory</option>
           <option value="Pink">Pink</option>
-          <option value="Other">Other</option>
+          <option value="Blue">Blue</option>
+          <option value="Black">Black</option>
+          <option value="White">White</option>
         </select>
       </div>
 
@@ -256,9 +358,11 @@ export default function Shop() {
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">
           The ADYA collection
         </p>
+
         <h1 className="mt-3 font-display text-4xl text-burgundy sm:text-5xl">
           All Sarees
         </h1>
+
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-ink/65 sm:text-base">
           Explore timeless weaves, thoughtful details and sarees for
           meaningful moments.
@@ -273,18 +377,22 @@ export default function Shop() {
           <Link to="/" className="hover:text-burgundy">
             Home
           </Link>
+
           <ChevronRight size={14} />
+
           <span className="text-ink">All Sarees</span>
         </nav>
 
         <div className="flex items-center justify-between gap-4 border-b border-burgundy/10 pb-5 lg:hidden">
           <p className="text-sm text-ink/65">
-            {filteredProducts.length} products
+            {total} products
           </p>
 
           <button
             type="button"
-            onClick={() => setMobileFiltersOpen((value) => !value)}
+            onClick={() =>
+              setMobileFiltersOpen((value) => !value)
+            }
             className="inline-flex items-center gap-2 border border-burgundy/15 px-4 py-2.5 text-sm"
           >
             <SlidersHorizontal size={16} />
@@ -301,22 +409,24 @@ export default function Shop() {
 
         <div className="grid gap-10 lg:grid-cols-[230px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
-            <div className="sticky top-6">{filterContent}</div>
+            <div className="sticky top-6">
+              {filterContent}
+            </div>
           </aside>
 
           <section className="min-w-0">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <p className="text-sm text-ink/60">
-                Showing {filteredProducts.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}
+                Showing {total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}
                 {'–'}
-                {Math.min(page * PAGE_SIZE, filteredProducts.length)} of{' '}
-                {filteredProducts.length} products
+                {Math.min(page * PAGE_SIZE, total)} of {total} products
               </p>
 
               <label className="flex items-center gap-3 text-sm">
                 <span className="whitespace-nowrap text-ink/60">
                   Sort by
                 </span>
+
                 <select
                   value={sortBy}
                   onChange={(event) => {
@@ -333,16 +443,35 @@ export default function Shop() {
               </label>
             </div>
 
-            {visibleProducts.length > 0 ? (
-              <ProductGrid products={visibleProducts} columns={3} />
-            ) : (
+            {loading && (
+              <p className="py-12 text-center text-sm text-ink/60">
+                Loading sarees...
+              </p>
+            )}
+
+            {error && (
+              <p className="py-12 text-center text-sm text-red-600">
+                {error}
+              </p>
+            )}
+
+            {!loading && !error && visibleProducts.length > 0 && (
+              <ProductGrid
+                products={visibleProducts}
+                columns={3}
+              />
+            )}
+
+            {!loading && !error && visibleProducts.length === 0 && (
               <div className="py-20 text-center">
                 <h2 className="font-display text-2xl text-burgundy">
                   No sarees found
                 </h2>
+
                 <p className="mt-3 text-sm text-ink/60">
                   Try changing your filters to see more products.
                 </p>
+
                 <button
                   type="button"
                   onClick={resetFilters}
@@ -360,35 +489,42 @@ export default function Shop() {
               >
                 <button
                   type="button"
-                  disabled={page === 1}
-                  onClick={() => setPage((current) => current - 1)}
+                  disabled={page === 1 || loading}
+                  onClick={() =>
+                    setPage((current) => current - 1)
+                  }
                   className="rounded-sm border border-burgundy/15 px-4 py-2 text-sm disabled:opacity-40"
                 >
                   Previous
                 </button>
 
-                {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-                  (pageNumber) => (
-                    <button
-                      key={pageNumber}
-                      type="button"
-                      aria-current={page === pageNumber ? 'page' : undefined}
-                      onClick={() => setPage(pageNumber)}
-                      className={`h-10 min-w-10 rounded-sm border px-3 text-sm ${
-                        page === pageNumber
-                          ? 'border-burgundy bg-burgundy text-white'
-                          : 'border-burgundy/15 hover:border-burgundy'
-                      }`}
-                    >
-                      {pageNumber}
-                    </button>
-                  )
-                )}
+                {Array.from(
+                  { length: totalPages },
+                  (_, index) => index + 1
+                ).map((pageNumber) => (
+                  <button
+                    key={pageNumber}
+                    type="button"
+                    aria-current={
+                      page === pageNumber ? 'page' : undefined
+                    }
+                    onClick={() => setPage(pageNumber)}
+                    className={`h-10 min-w-10 rounded-sm border px-3 text-sm ${
+                      page === pageNumber
+                        ? 'border-burgundy bg-burgundy text-white'
+                        : 'border-burgundy/15 hover:border-burgundy'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                ))}
 
                 <button
                   type="button"
-                  disabled={page === totalPages}
-                  onClick={() => setPage((current) => current + 1)}
+                  disabled={page === totalPages || loading}
+                  onClick={() =>
+                    setPage((current) => current + 1)
+                  }
                   className="rounded-sm border border-burgundy/15 px-4 py-2 text-sm disabled:opacity-40"
                 >
                   Next

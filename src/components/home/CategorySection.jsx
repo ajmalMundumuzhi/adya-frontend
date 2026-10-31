@@ -1,13 +1,61 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, ArrowUpRight } from 'lucide-react';
-import { SAREE_CATEGORIES } from '../../data/homepage';
+import { getCategories } from '../../services/store.service';
 import CategoryCard from './CategoryCard';
 
 export default function CategorySection() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const touchStartX = useRef(0);
-  const categories = SAREE_CATEGORIES || [];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCategories() {
+      try {
+        setLoading(true);
+        setError(false);
+
+        const data = await getCategories();
+        const activeCategories = data
+          .filter((category) => category.isActive !== false)
+          .filter((category) => !category.parentId)
+          .map((category) => ({
+            id: category._id,
+            name: category.name,
+            label: category.name,
+            image: category.imageUrl || '',
+            alt: `${category.name} saree collection`,
+            to: category.slug
+              ? `/shop?category=${encodeURIComponent(category.slug)}`
+              : '/shop',
+          }));
+
+        if (!cancelled) {
+          setCategories(activeCategories);
+          setActiveIndex(0);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadCategories();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (categories.length <= 1) return undefined;
@@ -19,7 +67,26 @@ export default function CategorySection() {
     return () => clearInterval(interval);
   }, [categories.length]);
 
-  if (!categories.length) return null;
+  if (loading) {
+    return (
+      <section className="bg-[#F8F3E8]">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-16">
+            <div className="aspect-[4/5] animate-pulse bg-[#D4BC98]/40" />
+            <div className="flex flex-col justify-center">
+              <div className="h-3 w-40 animate-pulse bg-[#D4BC98]/50" />
+              <div className="mt-5 h-12 max-w-sm animate-pulse bg-[#D4BC98]/50" />
+              <div className="mt-4 h-20 max-w-md animate-pulse bg-[#D4BC98]/30" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || !categories.length) {
+    return null;
+  }
 
   const activeCategory = categories[activeIndex];
 
@@ -57,7 +124,7 @@ export default function CategorySection() {
             <div className="relative aspect-[4/5] max-h-[620px] w-full overflow-hidden bg-[#D4BC98]">
               {categories.map((category, index) => (
                 <div
-                  key={category.name}
+                  key={category.id}
                   className={`absolute inset-0 transition-all duration-700 ease-in-out ${
                     index === activeIndex
                       ? 'translate-x-0 opacity-100'
@@ -109,7 +176,7 @@ export default function CategorySection() {
             <div className="mt-4 flex justify-center gap-2 lg:hidden">
               {categories.map((category, index) => (
                 <button
-                  key={category.name}
+                  key={category.id}
                   type="button"
                   onClick={() => setActiveIndex(index)}
                   aria-label={`Show ${category.name}`}
@@ -166,7 +233,7 @@ export default function CategorySection() {
             <div className="mt-6 hidden items-center gap-2 lg:flex">
               {categories.map((category, index) => (
                 <button
-                  key={category.name}
+                  key={category.id}
                   type="button"
                   onClick={() => setActiveIndex(index)}
                   aria-label={`Show ${category.name}`}
@@ -202,7 +269,7 @@ export default function CategorySection() {
                 .filter((_, index) => index !== activeIndex)
                 .map((category) => (
                   <div
-                    key={category.name}
+                    key={category.id}
                     className="w-[68%] min-w-[68%] shrink-0 snap-start sm:w-[36%] sm:min-w-[36%] md:w-[28%] md:min-w-[28%] lg:w-[22%] lg:min-w-[22%]"
                   >
                     <CategoryCard category={category} />

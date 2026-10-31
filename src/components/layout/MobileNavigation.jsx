@@ -8,6 +8,7 @@ import { MOBILE_MENU_BUTTON_ID, PRIMARY_NAV } from '../../config/navigation';
 import { SITE } from '../../config/site';
 import useCart from '../../hooks/useCart';
 import useScrollLock from '../../hooks/useScrollLock';
+import { getCurrentCustomer } from "../../services/auth.service";
 
 const rowClass = ({ isActive }) =>
   `flex min-h-[52px] flex-1 items-center px-3 py-3 font-display text-base transition-colors sm:text-lg ${
@@ -21,7 +22,7 @@ const utilityClass =
 
 export default function MobileNavigation({ open, onClose }) {
   const [expanded, setExpanded] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [customer, setCustomer] = useState(getCurrentCustomer);
   const closeRef = useRef(null);
   const wasOpen = useRef(false);
   const location = useLocation();
@@ -60,6 +61,18 @@ export default function MobileNavigation({ open, onClose }) {
     media.addEventListener('change', handleChange);
     return () => media.removeEventListener('change', handleChange);
   }, [onClose]);
+  
+  useEffect(() => {
+      const updateCustomer = () => {
+        setCustomer(getCurrentCustomer());
+      };
+
+      window.addEventListener("adya-auth-change", updateCustomer);
+
+      return () => {
+        window.removeEventListener("adya-auth-change", updateCustomer);
+      };
+    }, []);
 
   return (
     <div
@@ -166,15 +179,15 @@ export default function MobileNavigation({ open, onClose }) {
           </ul>
         </nav>
 
-        <ul className="mt-3 px-5">
+        <ul className="px-5 mt-3">
           <li className="border-b border-[#493829]/15">
             <Link
-              to={isLoggedIn ? '/account' : '/login'}
+              to={customer ? "/account" : "/login"}
               onClick={onClose}
               className={utilityClass}
             >
               <User size={22} strokeWidth={1.5} aria-hidden="true" />
-              <span>{isLoggedIn ? 'My Account' : 'Login'}</span>
+              <span>{customer ? customer.name : "Login / Register"}</span>
             </Link>
           </li>
 
@@ -217,7 +230,7 @@ export default function MobileNavigation({ open, onClose }) {
           </div>
 
           <SocialLinks
-            className="-ml-2 flex"
+            className="flex -ml-2"
             itemClassName="text-[#493829] hover:bg-[#D4BC98]/40"
           />
         </div>

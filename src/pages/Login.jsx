@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   ArrowLeft,
 } from 'lucide-react'
+import { loginCustomer } from "../services/auth.service";
 
 const Login = () => {
   const navigate = useNavigate()
@@ -60,12 +61,21 @@ const Login = () => {
     setIsSubmitting(true)
 
     try {
-      setErrors({
-        general: 'Login authentication is not connected yet.',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+        await loginCustomer({
+          email: formData.email.trim(),
+          password: formData.password,
+        });
+
+        navigate("/");
+      } catch (error) {
+        setErrors({
+          general:
+            error.response?.data?.message ||
+            "Unable to sign in. Please try again.",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
   }
 
   return (

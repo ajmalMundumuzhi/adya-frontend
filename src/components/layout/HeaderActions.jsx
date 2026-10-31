@@ -1,14 +1,33 @@
-import { Link } from 'react-router-dom';
-import { Heart, Search, ShoppingBag, User } from 'lucide-react';
-import CountrySelector from '../common/CountrySelector';
-import useCart from '../../hooks/useCart';
-import useCartSummary from '../../hooks/useCartSummary';
-import useCurrency from '../../hooks/useCurrency';
+
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Heart, Search, ShoppingBag, User } from "lucide-react";
+import CountrySelector from "../common/CountrySelector";
+import useCart from "../../hooks/useCart";
+import useCartSummary from "../../hooks/useCartSummary";
+import useCurrency from "../../hooks/useCurrency";
+import { getCurrentCustomer } from "../../services/auth.service";
 
 export default function HeaderActions({ searchOpen, onToggleSearch }) {
   const { itemCount } = useCart();
   const { subtotal } = useCartSummary();
   const { format } = useCurrency();
+  const [customer, setCustomer] = useState(getCurrentCustomer);
+
+  useEffect(() => {
+    const updateCustomer = () => {
+      setCustomer(getCurrentCustomer());
+    };
+
+    window.addEventListener("adya-auth-change", updateCustomer);
+
+    return () => {
+      window.removeEventListener("adya-auth-change", updateCustomer);
+    };
+  }, []);
+
+  const accountLink = customer ? "/account" : "/login";
+  const accountLabel = customer?.name || "Login / Register";
 
   return (
     <div className="flex items-center justify-end gap-0.5 sm:gap-1">
@@ -17,12 +36,19 @@ export default function HeaderActions({ searchOpen, onToggleSearch }) {
       </div>
 
       <Link
-        to="/account"
-        className="hidden items-center gap-2 px-2 text-[13px] font-medium uppercase tracking-[0.12em] text-ink/80 hover:text-burgundy 2xl:inline-flex"
+        to={accountLink}
+        title={accountLabel}
+        className="hidden max-w-48 items-center gap-2 truncate px-2 text-[13px] font-medium uppercase tracking-[0.12em] text-ink/80 hover:text-burgundy 2xl:inline-flex"
       >
-        Login / Register
+        <span className="truncate">{accountLabel}</span>
       </Link>
-      <Link to="/account" aria-label="Account" className="icon-btn hidden lg:inline-flex 2xl:hidden">
+
+      <Link
+        to={accountLink}
+        aria-label={accountLabel}
+        title={accountLabel}
+        className="hidden icon-btn lg:inline-flex 2xl:hidden"
+      >
         <User size={20} aria-hidden="true" />
       </Link>
 
@@ -38,20 +64,26 @@ export default function HeaderActions({ searchOpen, onToggleSearch }) {
         <Search size={20} aria-hidden="true" />
       </button>
 
-      <Link to="/wishlist" aria-label="Wishlist" className="icon-btn hidden lg:inline-flex">
+      <Link
+        to="/wishlist"
+        aria-label="Wishlist"
+        className="hidden icon-btn lg:inline-flex"
+      >
         <Heart size={20} aria-hidden="true" />
       </Link>
 
       <Link
         to="/cart"
-        aria-label={itemCount > 0 ? `Cart, ${itemCount} items` : 'Cart'}
+        aria-label={itemCount > 0 ? `Cart, ${itemCount} items` : "Cart"}
         className="relative inline-flex h-10 items-center gap-2 rounded-full px-2.5 text-ink transition-colors hover:bg-burgundy/10"
       >
         <span className="relative inline-flex">
           <ShoppingBag size={20} aria-hidden="true" />
           {itemCount > 0 && <span className="badge">{itemCount}</span>}
         </span>
-        <span className="hidden text-sm font-medium xl:inline">{format(subtotal)}</span>
+        <span className="hidden text-sm font-medium xl:inline">
+          {format(subtotal)}
+        </span>
       </Link>
     </div>
   );
