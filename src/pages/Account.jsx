@@ -21,6 +21,7 @@ import {
   removeWishlistItem,
 } from "../services/wishlist.service";
 import Price from "../components/common/Price";
+import AddressManager from "../components/account/AddressManager";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: UserRound },
@@ -372,18 +373,17 @@ export default function Account() {
               />
             )}
 
-            {activeTab === "addresses" && (
-              <AccountPanel
-                eyebrow="Delivery details"
-                title="Saved addresses"
-                description={
-                  isLoggedIn
-                    ? "Your saved delivery addresses will appear here once address integration is complete."
-                    : "Sign in to view and manage your saved shipping addresses."
-                }
-                isLoggedIn={isLoggedIn}
-              />
-            )}
+            {activeTab === "addresses" &&
+              (isLoggedIn ? (
+                <AddressManager />
+              ) : (
+                <AccountPanel
+                  eyebrow="Delivery details"
+                  title="Saved addresses"
+                  description="Sign in to view and manage your saved shipping addresses."
+                  isLoggedIn={false}
+                />
+              ))}
 
             {activeTab === "wishlist" && (
               <section>

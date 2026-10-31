@@ -80,13 +80,13 @@ export default function Home() {
       />
 
       {loading && (
-        <p className="py-8 text-center text-sm text-gray-500">
+        <p className="py-8 text-sm text-center text-gray-500">
           Loading products...
         </p>
       )}
 
       {error && (
-        <p className="py-8 text-center text-sm text-red-600">
+        <p className="py-8 text-sm text-center text-red-600">
           {error}
         </p>
       )}
@@ -106,7 +106,7 @@ export default function Home() {
       <SeasonalBanner />
       <TrustBenefits />
       <Testimonials />
-      <SocialGallery />
+      {/* <SocialGallery /> */}
       <Newsletter />
     </div>
   );
