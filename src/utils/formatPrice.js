@@ -2,24 +2,34 @@ const formatters = new Map();
 
 const getFormatter = (locale, currency) => {
   const key = `${locale}|${currency}`;
+
   if (!formatters.has(key)) {
     formatters.set(
       key,
       new Intl.NumberFormat(locale, {
         style: 'currency',
         currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }),
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
     );
   }
+
   return formatters.get(key);
 };
 
-export const convertFromInr = (amountInr, country) => Math.round(amountInr * country.rate);
+export const convertFromAUD = (amountAUD, exchangeRate = 1) => {
+  return Number(amountAUD || 0) * Number(exchangeRate || 1);
+};
 
-export const formatCurrency = (amount, country) =>
-  getFormatter(country.locale, country.currency).format(amount);
+export const formatCurrency = (amount, country) => {
+  return getFormatter(country.locale, country.currency).format(
+    Number(amount || 0)
+  );
+};
 
-export const formatPrice = (amountInr, country) =>
-  formatCurrency(convertFromInr(amountInr, country), country);
+export const formatPrice = (amountAUD, country, exchangeRate = 1) => {
+  const convertedAmount = convertFromAUD(amountAUD, exchangeRate);
+
+  return formatCurrency(convertedAmount, country);
+};

@@ -21,6 +21,7 @@ export default function CategorySection() {
         setError(false);
 
         const data = await getCategories();
+        console.log("Categories API response:", data);
         const activeCategories = data
           .filter((category) => category.isActive !== false)
           .filter((category) => !category.parentId)
@@ -70,7 +71,7 @@ export default function CategorySection() {
   if (loading) {
     return (
       <section className="bg-[#F8F3E8]">
-        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+        <div className="px-5 py-12 mx-auto max-w-7xl sm:px-8 sm:py-20 lg:px-12 lg:py-24">
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-16">
             <div className="aspect-[4/5] animate-pulse bg-[#D4BC98]/40" />
             <div className="flex flex-col justify-center">
@@ -114,7 +115,7 @@ export default function CategorySection() {
 
   return (
     <section className="overflow-hidden bg-[#F8F3E8]">
-      <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+      <div className="px-5 py-12 mx-auto max-w-7xl sm:px-8 sm:py-20 lg:px-12 lg:py-24">
         <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
           <div
             className="relative order-1 min-w-0 lg:order-2"
@@ -143,7 +144,7 @@ export default function CategorySection() {
               ))}
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-4 lg:hidden">
+            <div className="flex items-center justify-between gap-4 mt-4 lg:hidden">
               <div className="min-w-0">
                 <p className="truncate font-display text-xl text-[#493829]">
                   {activeCategory.name}
@@ -153,7 +154,7 @@ export default function CategorySection() {
                 </p>
               </div>
 
-              <div className="flex shrink-0 gap-2">
+              <div className="flex gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={goToPrevious}
@@ -173,7 +174,7 @@ export default function CategorySection() {
               </div>
             </div>
 
-            <div className="mt-4 flex justify-center gap-2 lg:hidden">
+            <div className="flex justify-center gap-2 mt-4 lg:hidden">
               {categories.map((category, index) => (
                 <button
                   key={category.id}
@@ -191,7 +192,7 @@ export default function CategorySection() {
             </div>
           </div>
 
-          <div className="order-2 flex flex-col items-start lg:order-1">
+          <div className="flex flex-col items-start order-2 lg:order-1">
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#493829]/70 sm:text-xs">
               Find your favourite drape
             </p>
@@ -213,7 +214,7 @@ export default function CategorySection() {
               <ArrowRight size={17} aria-hidden="true" />
             </Link>
 
-            <div className="mt-7 hidden items-center gap-4 lg:flex">
+            <div className="items-center hidden gap-4 mt-7 lg:flex">
               <span className="font-display text-lg text-[#493829]">
                 {String(activeIndex + 1).padStart(2, '0')}
               </span>
@@ -230,7 +231,7 @@ export default function CategorySection() {
               </span>
             </div>
 
-            <div className="mt-6 hidden items-center gap-2 lg:flex">
+            <div className="items-center hidden gap-2 mt-6 lg:flex">
               {categories.map((category, index) => (
                 <button
                   key={category.id}
@@ -249,9 +250,9 @@ export default function CategorySection() {
           </div>
         </div>
 
-        {categories.length > 1 && (
+        {categories.length > 0 && (
           <div className="mt-14 sm:mt-20">
-            <div className="mb-6 flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 mb-6">
               <h3 className="font-display text-2xl text-[#493829] sm:text-3xl">
                 More ways to drape
               </h3>
@@ -265,9 +266,7 @@ export default function CategorySection() {
             </div>
 
             <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 sm:gap-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {categories
-                .filter((_, index) => index !== activeIndex)
-                .map((category) => (
+              {categories.map((category) => (
                   <div
                     key={category.id}
                     className="w-[68%] min-w-[68%] shrink-0 snap-start sm:w-[36%] sm:min-w-[36%] md:w-[28%] md:min-w-[28%] lg:w-[22%] lg:min-w-[22%]"

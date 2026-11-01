@@ -1,40 +1,51 @@
-import { useMemo } from "react";
-import useCart from "./useCart";
-import useCurrency from "./useCurrency";
-import { convertFromInr } from "../utils/formatPrice";
+import { useMemo } from 'react';
+import useCurrency from './useCurrency';
 
-export default function useCartSummary() {
-  const { lines, itemCount } = useCart();
-  const { country } = useCurrency();
+export default function useCartSummary(cart) {
+  const { convert, formatPrice } = useCurrency();
 
   return useMemo(() => {
-    const detailed = lines.map((line) => {
-      const product = line.product;
+    const items = cart?.items || [];
 
-      if (!product) return null;
-
-      const priceInr = Number(product.price ?? product.priceInr ?? 0);
-      const unit = convertFromInr(priceInr, country);
-
-      return {
-        lineId: line.lineId,
-        productId: line.productId,
-        product,
-        quantity: line.quantity,
-        unit,
-        lineTotal: unit * line.quantity,
-      };
-    }).filter(Boolean);
-
-    const subtotal = detailed.reduce(
-      (total, line) => total + line.lineTotal,
+    const itemCount = items.reduce(
+      (total, item) => total + Number(item.quantity || 0),
       0
     );
 
+    const subtotalAUD = items.reduce((total, item) => {
+      const price = Number(item.price || 0);
+      const quantity = Number(item.quantity || 0);
+
+      return total + price * quantity;
+    }, 0);
+
+    const compareAtTotalAUD = items.reduce((total, item) => {
+      const price = Number(
+        item.compareAtPrice || item.price || 0
+      );
+
+      const quantity = Number(item.quantity || 0);
+
+      return total + price * quantity;
+    }, 0);
+
+    const subtotal = convert(subtotalAUD);
+    const compareAtTotal = convert(compareAtTotalAUD);
+
     return {
-      lines: detailed,
-      subtotal,
+      items,
       itemCount,
+      subtotalAUD,
+      compareAtTotalAUD,
+      subtotal,
+      compareAtTotal,
+      formattedSubtotal: formatPrice(subtotalAUD),
+      formattedCompareAtTotal: formatPrice(compareAtTotalAUD),
+      hasSavings: compareAtTotalAUD > subtotalAUD,
+      savingsAUD: Math.max(0, compareAtTotalAUD - subtotalAUD),
+      formattedSavings: formatPrice(
+        Math.max(0, compareAtTotalAUD - subtotalAUD)
+      ),
     };
-  }, [lines, itemCount, country]);
+  }, [cart, convert, formatPrice]);
 }

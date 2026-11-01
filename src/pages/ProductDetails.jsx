@@ -29,7 +29,7 @@ import {
   removeWishlistItem,
 } from "../services/wishlist.service";
 const benefits = [
-  { icon: Truck, title: "Free Shipping", description: "On orders above ₹999" },
+  { icon: Truck, title: "Free Shipping", description: "On qualifying orders" },
   { icon: RotateCcw, title: "Easy Returns", description: "7 days hassle free" },
   { icon: ShieldCheck, title: "Secure Payment", description: "100% secure checkout" },
   { icon: Leaf, title: "Premium Quality", description: "Assured craftsmanship" },
@@ -38,8 +38,8 @@ function formatProduct(product) {
   return {
     ...product,
     id: product._id,
-    priceInr: product.price,
-    compareAtInr: product.compareAtPrice,
+    priceAUD: product.price,
+    compareAtAUD: product.compareAtPrice,
     image: product.imagePath || product.images?.[0] || "",
     to: `/product/${product.slug || product._id}`,
   };
@@ -140,15 +140,15 @@ export default function ProductDetails() {
     ? selectedVariant.images
     : [];
   const mainImage = images[imageIndex] || images[0] || "";
-  const price = Number(selectedSize?.price ?? product?.price ?? 0);
-  const compareAtPrice = Number(
+  const priceAUD = Number(selectedSize?.price ?? product?.price ?? 0);
+  const compareAtAUD = Number(
     selectedSize?.compareAtPrice ?? product?.compareAtPrice ?? 0
   );
   const stock = Number(selectedSize?.stock ?? 0);
   const isInStock = Boolean(selectedSize && selectedSize.isActive !== false && stock > 0);
   const discount =
-    compareAtPrice > price && compareAtPrice > 0
-      ? Math.round((1 - price / compareAtPrice) * 100)
+    compareAtAUD > priceAUD && compareAtAUD > 0
+      ? Math.round((1 - priceAUD / compareAtAUD) * 100)
       : 0;
   const getReferenceId = (value) => {
     if (!value) return "";
@@ -281,8 +281,8 @@ export default function ProductDetails() {
         selectedColor: selectedVariant.color,
         selectedSize: selectedSize.size,
         sku: selectedSize.sku || "",
-        price,
-        compareAtPrice: compareAtPrice || null,
+        price: priceAUD,
+        compareAtPrice: compareAtAUD || null,
         stock,
         image: mainImage,
         description: product.description || "",
@@ -426,13 +426,13 @@ export default function ProductDetails() {
                   {product.name}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 mt-5">
-                  {compareAtPrice > price && (
+                  {compareAtAUD > priceAUD && (
                     <div className="text-lg text-[#B6AEA5] line-through">
-                      <Price amountInr={compareAtPrice} />
+                      <Price amountAUD={compareAtAUD} />
                     </div>
                   )}
                   <div className="text-xl font-semibold text-[#B68B2E]">
-                    <Price amountInr={price} />
+                    <Price amountAUD={priceAUD} />
                   </div>
                   {discount > 0 && (
                     <span className="rounded-md bg-[#F3E0D7] px-3 py-1.5 text-[11px] font-semibold text-[#8C3A36]">
@@ -704,7 +704,7 @@ export default function ProductDetails() {
                         <div className="aspect-[3/4] w-full" />
                       )}
                     </Link>
-                    {item.compareAtInr > item.priceInr && (
+                    {item.compareAtAUD > item.priceAUD && (
                       <span className="absolute left-2 top-2 bg-[#D7AE3F] px-2 py-1 text-[9px] font-semibold text-white sm:left-3 sm:top-3">
                         SALE
                       </span>
@@ -734,13 +734,13 @@ export default function ProductDetails() {
                     {item.name}
                   </Link>
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 text-[11px]">
-                    {item.compareAtInr > item.priceInr && (
+                    {item.compareAtAUD > item.priceAUD && (
                       <span className="text-[#B6AEA5] line-through">
-                        <Price amountInr={item.compareAtInr} />
+                        <Price amountAUD={item.compareAtAUD} />
                       </span>
                     )}
                     <span className="font-semibold text-[#B68B2E]">
-                      <Price amountInr={item.priceInr} />
+                      <Price amountAUD={item.priceAUD} />
                     </span>
                   </div>
                 </article>
