@@ -22,6 +22,7 @@ import {
 } from "../services/wishlist.service";
 import Price from "../components/common/Price";
 import AddressManager from "../components/account/AddressManager";
+import AccountOrders from "../components/account/AccountOrders";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: UserRound },
@@ -361,16 +362,16 @@ export default function Account() {
             )}
 
             {activeTab === "orders" && (
-              <AccountPanel
-                eyebrow="Your purchases"
-                title="My orders"
-                description={
-                  isLoggedIn
-                    ? "Your order history and delivery updates will appear here once order integration is complete."
-                    : "Sign in to view your order history and delivery updates."
-                }
-                isLoggedIn={isLoggedIn}
-              />
+              isLoggedIn ? (
+                <AccountOrders />
+              ) : (
+                <AccountPanel
+                  eyebrow="Your purchases"
+                  title="My orders"
+                  description="Sign in to view your order history and delivery updates."
+                  isLoggedIn={false}
+                />
+              )
             )}
 
             {activeTab === "addresses" &&
