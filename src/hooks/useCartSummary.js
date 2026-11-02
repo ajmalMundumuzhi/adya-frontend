@@ -1,51 +1,82 @@
-import { useMemo } from 'react';
-import useCurrency from './useCurrency';
 
-export default function useCartSummary(cart) {
+import { useMemo } from "react";
+import useCurrency from "./useCurrency";
+import useCart from "./useCart";
+
+export default function useCartSummary(cart = null) {
+  const cartContext = useCart();
   const { convert, formatPrice } = useCurrency();
 
   return useMemo(() => {
-    const items = cart?.items || [];
+    const source = cart || cartContext;
+
+    const items = Array.isArray(source?.lines)
+      ? source.lines
+      : Array.isArray(source?.items)
+        ? source.items
+        : [];
+
+    const getPrice = item => {
+      const product = item.product || {};
+
+      return Number(
+        product.priceAUD ??
+        product.unitPriceAUD ??
+        product.price ??
+        item.priceAUD ??
+        item.unitPriceAUD ??
+        item.price ??
+        0
+      );
+    };
+
+    const getCompareAtPrice = item => {
+      const product = item.product || {};
+
+      return Number(
+        product.compareAtPriceAUD ??
+        product.compareAtPrice ??
+        item.compareAtPriceAUD ??
+        item.compareAtPrice ??
+        getPrice(item)
+      );
+    };
 
     const itemCount = items.reduce(
       (total, item) => total + Number(item.quantity || 0),
       0
     );
 
-    const subtotalAUD = items.reduce((total, item) => {
-      const price = Number(item.price || 0);
-      const quantity = Number(item.quantity || 0);
+    const subtotalAUD = items.reduce(
+      (total, item) =>
+        total + getPrice(item) * Number(item.quantity || 0),
+      0
+    );
 
-      return total + price * quantity;
-    }, 0);
+    const compareAtTotalAUD = items.reduce(
+      (total, item) =>
+        total + getCompareAtPrice(item) * Number(item.quantity || 0),
+      0
+    );
 
-    const compareAtTotalAUD = items.reduce((total, item) => {
-      const price = Number(
-        item.compareAtPrice || item.price || 0
-      );
-
-      const quantity = Number(item.quantity || 0);
-
-      return total + price * quantity;
-    }, 0);
-
-    const subtotal = convert(subtotalAUD);
-    const compareAtTotal = convert(compareAtTotalAUD);
+    const savingsAUD = Math.max(
+      0,
+      compareAtTotalAUD - subtotalAUD
+    );
 
     return {
+      lines: items,
       items,
       itemCount,
       subtotalAUD,
       compareAtTotalAUD,
-      subtotal,
-      compareAtTotal,
+      subtotal: convert(subtotalAUD),
+      compareAtTotal: convert(compareAtTotalAUD),
       formattedSubtotal: formatPrice(subtotalAUD),
       formattedCompareAtTotal: formatPrice(compareAtTotalAUD),
-      hasSavings: compareAtTotalAUD > subtotalAUD,
-      savingsAUD: Math.max(0, compareAtTotalAUD - subtotalAUD),
-      formattedSavings: formatPrice(
-        Math.max(0, compareAtTotalAUD - subtotalAUD)
-      ),
+      hasSavings: savingsAUD > 0,
+      savingsAUD,
+      formattedSavings: formatPrice(savingsAUD)
     };
-  }, [cart, convert, formatPrice]);
+  }, [cart, cartContext, convert, formatPrice]);
 }

@@ -15,6 +15,7 @@ import {
   updateProduct,
   uploadProductImages
 } from "../../services/admin/products.service";
+import { getCategories } from "../../services/admin/categories.service";
 
 function createSize() {
   return {
@@ -37,27 +38,84 @@ function createVariant() {
   };
 }
 
+function createDetail() {
+  return {
+    key: "",
+    value: ""
+  };
+}
+
 const initialForm = {
   name: "",
   slug: "",
   description: "",
   categoryId: "",
-  subcategoryIds: "",
+  subcategoryIds: [],
   offerId: "",
   isActive: true,
-  details: "{}",
+  details: [createDetail()],
   variants: [createVariant()]
 };
+
+const standardDetails = [
+  { key: "fabric", label: "Fabric", placeholder: "Pure Silk" },
+  { key: "occasion", label: "Occasion", placeholder: "Wedding" },
+  { key: "blouse", label: "Blouse", placeholder: "Unstitched" },
+  { key: "work", label: "Work", placeholder: "Zari Work" },
+  { key: "pattern", label: "Pattern", placeholder: "Traditional" },
+  {
+    key: "careInstructions",
+    label: "Care Instructions",
+    placeholder: "Dry Clean Only"
+  },
+  {
+    key: "countryOfOrigin",
+    label: "Country of Origin",
+    placeholder: "India"
+  }
+];
 
 export default function AddProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = Boolean(id);
 
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState("");
+
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadCategories() {
+      try {
+        const data = await getCategories();
+
+        if (active) {
+          setCategories(data);
+        }
+      } catch (err) {
+        if (active) {
+          setCategoriesError(err.message || "Unable to load categories");
+        }
+      } finally {
+        if (active) {
+          setCategoriesLoading(false);
+        }
+      }
+    }
+
+    loadCategories();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isEditing) return;
@@ -70,17 +128,26 @@ export default function AddProduct() {
 
         if (!active) return;
 
+        const existingDetails = Object.entries(product.details || {}).map(
+          ([key, value]) => ({
+            key,
+            value: String(value ?? "")
+          })
+        );
+
         setForm({
           name: product.name || "",
           slug: product.slug || "",
           description: product.description || "",
           categoryId: product.categoryId?._id || product.categoryId || "",
-          subcategoryIds: (product.subcategoryIds || [])
-            .map((item) => item?._id || item)
-            .join(", "),
+          subcategoryIds: (product.subcategoryIds || []).map(
+            (item) => item?._id || item
+          ),
           offerId: product.offerId?._id || product.offerId || "",
           isActive: product.isActive !== false,
-          details: JSON.stringify(product.details || {}, null, 2),
+          details: existingDetails.length
+            ? existingDetails
+            : [createDetail()],
           variants: (product.variants || []).map((variant) => ({
             color: variant.color || "",
             images: variant.images || [],
@@ -112,6 +179,50 @@ export default function AddProduct() {
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function updateDetail(index, field, value) {
+    setForm((current) => ({
+      ...current,
+      details: current.details.map((detail, detailIndex) =>
+        detailIndex === index
+          ? { ...detail, [field]: value }
+          : detail
+      )
+    }));
+  }
+
+  function addDetail() {
+    setForm((current) => ({
+      ...current,
+      details: [...current.details, createDetail()]
+    }));
+  }
+
+  function removeDetail(index) {
+    setForm((current) => ({
+      ...current,
+      details: current.details.filter((_, i) => i !== index)
+    }));
+  }
+
+  function addStandardDetail(detail) {
+    const exists = form.details.some(
+      (item) => item.key.toLowerCase() === detail.key.toLowerCase()
+    );
+
+    if (exists) return;
+
+    setForm((current) => ({
+      ...current,
+      details: [
+        ...current.details.filter((item) => item.key || item.value),
+        {
+          key: detail.key,
+          value: ""
+        }
+      ]
+    }));
   }
 
   function updateVariant(index, field, value) {
@@ -233,6 +344,11 @@ export default function AddProduct() {
       return;
     }
 
+    if (!form.categoryId) {
+      setError("Please select a category");
+      return;
+    }
+
     if (!form.variants.length) {
       setError("Add at least one product variant");
       return;
@@ -262,21 +378,25 @@ export default function AddProduct() {
       }
     }
 
-    let details;
+    const details = {};
 
-    try {
-      details = JSON.parse(form.details || "{}");
+    for (const detail of form.details) {
+      const key = detail.key.trim();
+      const value = detail.value.trim();
 
-      if (
-        !details ||
-        typeof details !== "object" ||
-        Array.isArray(details)
-      ) {
-        throw new Error();
+      if (!key && !value) continue;
+
+      if (!key || !value) {
+        setError("Complete or remove every additional detail field");
+        return;
       }
-    } catch {
-      setError("Product details must be a valid JSON object");
-      return;
+
+      if (Object.prototype.hasOwnProperty.call(details, key)) {
+        setError(`Duplicate product detail: ${key}`);
+        return;
+      }
+
+      details[key] = value;
     }
 
     setSaving(true);
@@ -320,11 +440,8 @@ export default function AddProduct() {
         name: form.name.trim(),
         slug: form.slug.trim() || undefined,
         description: form.description,
-        categoryId: form.categoryId.trim() || null,
-        subcategoryIds: form.subcategoryIds
-          .split(",")
-          .map((value) => value.trim())
-          .filter(Boolean),
+        categoryId: form.categoryId || null,
+        subcategoryIds: form.subcategoryIds,
         offerId: form.offerId.trim() || null,
         isActive: form.isActive,
         details,
@@ -355,8 +472,7 @@ export default function AddProduct() {
   const inputClass =
     "mt-2 w-full rounded-xl border border-[#e9e1d7] bg-white px-4 py-3 text-sm text-[#4b2927] outline-none transition focus:border-[#8b6257]";
 
-  const labelClass =
-    "text-sm font-medium text-[#624b40]";
+  const labelClass = "text-sm font-medium text-[#624b40]";
 
   if (loading) {
     return (
@@ -433,27 +549,66 @@ export default function AddProduct() {
           </label>
 
           <label className={labelClass}>
-            Category ID
-            <input
+            Category *
+            <select
               className={inputClass}
               value={form.categoryId}
-              onChange={(event) =>
-                updateField("categoryId", event.target.value)
-              }
-              placeholder="MongoDB category ID"
-            />
+              disabled={categoriesLoading}
+              onChange={(event) => {
+                setForm((current) => ({
+                  ...current,
+                  categoryId: event.target.value,
+                  subcategoryIds: []
+                }));
+              }}
+              required
+            >
+              <option value="">
+                {categoriesLoading ? "Loading categories..." : "Select category"}
+              </option>
+
+              {categories
+                .filter((category) => !category.parentId)
+                .map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+            </select>
           </label>
 
           <label className={labelClass}>
-            Subcategory IDs
-            <input
-              className={inputClass}
+            Subcategories
+            <select
+              multiple
+              className={`${inputClass} min-h-32`}
               value={form.subcategoryIds}
-              onChange={(event) =>
-                updateField("subcategoryIds", event.target.value)
-              }
-              placeholder="Comma-separated IDs"
-            />
+              disabled={!form.categoryId}
+              onChange={(event) => {
+                const selected = Array.from(
+                  event.target.selectedOptions,
+                  (option) => option.value
+                );
+
+                updateField("subcategoryIds", selected);
+              }}
+            >
+              {categories
+                .filter(
+                  (category) =>
+                    String(category.parentId?._id || category.parentId) ===
+                    String(form.categoryId)
+                )
+                .map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+            </select>
+
+            <span className="mt-1 block text-xs font-normal text-[#a18c7c]">
+              Hold Ctrl (Windows) or Command (Mac) to select multiple.
+            </span>
           </label>
 
           <label className={labelClass}>
@@ -478,6 +633,10 @@ export default function AddProduct() {
             Product is active
           </label>
         </div>
+
+        {categoriesError && (
+          <p className="mt-3 text-sm text-red-600">{categoriesError}</p>
+        )}
       </section>
 
       <section className="space-y-5">
@@ -597,10 +756,7 @@ export default function AddProduct() {
                   ))}
 
                   {variant.imageFiles.map((file, imageIndex) => (
-                    <div
-                      key={`new-${imageIndex}`}
-                      className="relative"
-                    >
+                    <div key={`new-${imageIndex}`} className="relative">
                       <img
                         src={URL.createObjectURL(file)}
                         alt={file.name}
@@ -777,21 +933,95 @@ export default function AddProduct() {
       </section>
 
       <section className="rounded-2xl border border-[#eee8df] bg-white p-5 sm:p-7">
-        <h2 className="text-lg font-semibold text-[#4b2927]">
-          Additional Product Details
-        </h2>
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div>
+            <h2 className="text-lg font-semibold text-[#4b2927]">
+              Additional Product Details
+            </h2>
+            <p className="mt-1 text-sm text-[#927e6e]">
+              Add specifications that customers can see on the product page.
+            </p>
+          </div>
+        </div>
 
-        <p className="mt-1 text-sm text-[#927e6e]">
-          Enter a valid JSON object for additional attributes.
-        </p>
+        <div className="mt-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#a18c7c]">
+            Suggested attributes
+          </p>
 
-        <textarea
-          rows={6}
-          className={`${inputClass} font-mono`}
-          value={form.details}
-          onChange={(event) => updateField("details", event.target.value)}
-          spellCheck={false}
-        />
+          <div className="flex flex-wrap gap-2">
+            {standardDetails.map((detail) => {
+              const exists = form.details.some(
+                (item) =>
+                  item.key.toLowerCase() === detail.key.toLowerCase()
+              );
+
+              return (
+                <button
+                  key={detail.key}
+                  type="button"
+                  disabled={exists}
+                  onClick={() => addStandardDetail(detail)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#e9e1d7] px-3 py-2 text-xs font-medium text-[#715d50] transition hover:border-[#9b806b] hover:bg-[#f8f3ec] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Plus size={13} />
+                  {detail.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-4">
+          {form.details.map((detail, index) => (
+            <div
+              key={index}
+              className="grid gap-3 rounded-xl border border-[#eee8df] bg-[#fffdf9] p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+            >
+              <label className={labelClass}>
+                Attribute Name
+                <input
+                  className={inputClass}
+                  value={detail.key}
+                  onChange={(event) =>
+                    updateDetail(index, "key", event.target.value)
+                  }
+                  placeholder="Fabric"
+                />
+              </label>
+
+              <label className={labelClass}>
+                Attribute Value
+                <input
+                  className={inputClass}
+                  value={detail.value}
+                  onChange={(event) =>
+                    updateDetail(index, "value", event.target.value)
+                  }
+                  placeholder="Pure Silk"
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={() => removeDetail(index)}
+                className="flex h-11 items-center justify-center gap-2 rounded-lg border border-red-100 px-3 text-sm text-red-600 hover:bg-red-50"
+              >
+                <Trash2 size={16} />
+                <span className="sm:hidden">Remove attribute</span>
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={addDetail}
+          className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[#d9c9b9] px-4 py-3 text-sm font-medium text-[#5b302e] transition hover:bg-[#f5f0e9]"
+        >
+          <Plus size={17} />
+          Add Custom Attribute
+        </button>
       </section>
 
       <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">

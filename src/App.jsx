@@ -16,6 +16,7 @@ import Register from "./pages/Register";
 import Terms from "./pages/Terms";
 import Policy from "./pages/Policy";
 import RefundPolicy from "./pages/RefundPolicy";
+import Checkout from "./pages/Checkout";
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminProtectedRoute from "./components/admin/layout/AdminProtectedRoutes";
@@ -23,12 +24,12 @@ import AdminLayout from "./components/admin/layout/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Product";
 import AdminAddProduct from "./pages/admin/AddProduct";
-// import AdminOrders from "./pages/admin/Orders";
-// import AdminOrderDetails from "./pages/admin/OrderDetails";
-// import AdminCustomers from "./pages/admin/Customers";
+import AdminOrders from "./pages/admin/Orders";
+import AdminOrderDetails from "./pages/admin/OrderDetails";
+import AdminCustomers from "./pages/admin/Customers";
 // import AdminCategories from "./pages/admin/Categories";
-// import AdminInventory from "./pages/admin/Inventory";
-// import AdminSettings from "./pages/admin/Settings";
+import AdminInventory from "./pages/admin/Inventory";
+import AdminSettings from "./pages/admin/Settings";
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="account" element={<Account />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="/checkout" element={<Checkout />} />
         {/* <Route path="*" element={<RoutePlaceholder />} /> */}
       </Route>
 
@@ -59,12 +61,12 @@ export default function App() {
             <Route path="products" element={<AdminProducts />} />
             <Route path="products/add" element={<AdminAddProduct />} />
             <Route path="products/:id/edit" element={<AdminAddProduct />} />
-            {/* <Route path="orders" element={<AdminOrders />} /> */}
-            {/* <Route path="orders/:id" element={<AdminOrderDetails />} /> */}
-            {/* <Route path="customers" element={<AdminCustomers />} /> */}
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="orders/:id" element={<AdminOrderDetails />} />
+            <Route path="customers" element={<AdminCustomers />} />
             {/* <Route path="categories" element={<AdminCategories />} /> */}
-            {/* <Route path="inventory" element={<AdminInventory />} /> */}
-            {/* <Route path="settings" element={<AdminSettings />} /> */}
+            <Route path="inventory" element={<AdminInventory />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
         </Route>
       </Route>

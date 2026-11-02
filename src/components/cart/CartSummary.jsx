@@ -1,6 +1,9 @@
 import { ArrowRight, ShoppingBag } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 export default function CartSummary({ subtotal, format }) {
+  const navigate = useNavigate();
+
   return (
     <aside className="h-fit border border-ink/10 bg-white/50 p-5 sm:p-7 lg:sticky lg:top-6">
       <h2 className="font-display text-2xl text-burgundy">Order summary</h2>
@@ -29,7 +32,7 @@ export default function CartSummary({ subtotal, format }) {
 
       <button
         type="button"
-        disabled
+        onClick={() => navigate("/checkout")}
         title="Checkout will be enabled when the checkout flow is implemented"
         className="flex w-full cursor-not-allowed items-center justify-center gap-3 bg-burgundy/60 px-5 py-4 text-xs font-semibold uppercase tracking-[0.15em] text-white"
       >
