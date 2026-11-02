@@ -27,7 +27,7 @@ import AdminAddProduct from "./pages/admin/AddProduct";
 import AdminOrders from "./pages/admin/Orders";
 import AdminOrderDetails from "./pages/admin/OrderDetails";
 import AdminCustomers from "./pages/admin/Customers";
-// import AdminCategories from "./pages/admin/Categories";
+import AdminCategories from "./pages/admin/Categories";
 import AdminInventory from "./pages/admin/Inventory";
 import AdminSettings from "./pages/admin/Settings";
 
@@ -64,7 +64,7 @@ export default function App() {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="orders/:id" element={<AdminOrderDetails />} />
             <Route path="customers" element={<AdminCustomers />} />
-            {/* <Route path="categories" element={<AdminCategories />} /> */}
+            <Route path="categories" element={<AdminCategories />} />
             <Route path="inventory" element={<AdminInventory />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>

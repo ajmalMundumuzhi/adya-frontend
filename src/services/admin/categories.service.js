@@ -1,82 +1,47 @@
 
 import adminApi from "./admin.api";
 
-function getError(error, fallback) {
-  return new Error(
-    error.response?.data?.message ||
-    error.message ||
-    fallback
-  );
+function unwrap(response) {
+  const data = response?.data;
+
+  if (data?.success === false) {
+    throw new Error(data.message || "Category request failed");
+  }
+
+  return data?.data ?? data;
 }
 
-export async function getCategories(includeInactive = false) {
-  try {
-    const response = await adminApi.get("/categories", {
-      params: includeInactive ? { includeInactive: true } : {}
-    });
-
-    if (!response.data?.success) {
-      throw new Error(response.data?.message || "Unable to load categories");
+export async function getCategories(includeInactive = true) {
+  const response = await adminApi.get("/categories", {
+    params: {
+      includeInactive
     }
+  });
 
-    return response.data.data || [];
-  } catch (error) {
-    throw getError(error, "Unable to load categories");
-  }
+  const result = unwrap(response);
+  return Array.isArray(result) ? result : [];
 }
 
-export async function getCategoryById(id) {
-  try {
-    const response = await adminApi.get(`/categories/${id}`);
-
-    if (!response.data?.success) {
-      throw new Error(response.data?.message || "Unable to load category");
-    }
-
-    return response.data.data;
-  } catch (error) {
-    throw getError(error, "Unable to load category");
-  }
+export async function getCategory(categoryId) {
+  const response = await adminApi.get(`/categories/${categoryId}`);
+  return unwrap(response);
 }
 
 export async function createCategory(payload) {
-  try {
-    const response = await adminApi.post("/categories", payload);
-
-    if (!response.data?.success) {
-      throw new Error(response.data?.message || "Unable to create category");
-    }
-
-    return response.data.data;
-  } catch (error) {
-    throw getError(error, "Unable to create category");
-  }
+  const response = await adminApi.post("/categories", payload);
+  return unwrap(response);
 }
 
-export async function updateCategory(id, payload) {
-  try {
-    const response = await adminApi.patch(`/categories/${id}`, payload);
+export async function updateCategory(categoryId, payload) {
+  const response = await adminApi.patch(
+    `/categories/${categoryId}`,
+    payload
+  );
 
-    if (!response.data?.success) {
-      throw new Error(response.data?.message || "Unable to update category");
-    }
-
-    return response.data.data;
-  } catch (error) {
-    throw getError(error, "Unable to update category");
-  }
+  return unwrap(response);
 }
 
-export async function deleteCategory(id) {
-  try {
-    const response = await adminApi.delete(`/categories/${id}`);
-
-    if (!response.data?.success) {
-      throw new Error(response.data?.message || "Unable to delete category");
-    }
-
-    return response.data.data;
-  } catch (error) {
-    throw getError(error, "Unable to delete category");
-  }
+export async function deleteCategory(categoryId) {
+  const response = await adminApi.delete(`/categories/${categoryId}`);
+  return unwrap(response);
 }

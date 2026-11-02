@@ -119,6 +119,7 @@ function StockAdjustmentModal({ item, onClose, onSave, saving }) {
             type="button"
             onClick={onClose}
             aria-label="Close"
+            className="rounded-lg p-2 text-stone-500 hover:bg-stone-100"
           >
             <X size={19} />
           </button>
@@ -311,6 +312,7 @@ export default function Inventory() {
   const [saving, setSaving] = useState(false);
 
   const [error, setError] = useState("");
+  const [thresholdError, setThresholdError] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
 
   const [activeTab, setActiveTab] = useState("stock");
@@ -335,8 +337,8 @@ export default function Inventory() {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-        err.message ||
-        "Unable to load inventory"
+          err.message ||
+          "Unable to load inventory"
       );
     } finally {
       setLoading(false);
@@ -346,21 +348,49 @@ export default function Inventory() {
   const loadThreshold = useCallback(async () => {
     try {
       setThresholdLoading(true);
+      setThresholdError("");
 
       const response = await adminApi.get(
         "/settings/inventory.lowStockThreshold"
       );
 
-      const value = Number(response.data?.data?.value);
+      const responseData = response.data;
 
-      if (Number.isInteger(value) && value >= 1 && value <= 100000) {
+      const value = Number(
+        responseData?.data?.value ??
+          responseData?.value
+      );
+
+      if (
+        Number.isInteger(value) &&
+        value >= 1 &&
+        value <= 100000
+      ) {
         setLowStockThreshold(value);
+      } else {
+        setLowStockThreshold(DEFAULT_LOW_STOCK_THRESHOLD);
+
+        setThresholdError(
+          "The server returned an invalid threshold. Using the default threshold of 5."
+        );
+
+        console.warn(
+          "Invalid inventory threshold response:",
+          responseData
+        );
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-        "Unable to load low-stock threshold. Using the default threshold of 5."
+      setLowStockThreshold(DEFAULT_LOW_STOCK_THRESHOLD);
+
+      setThresholdError(
+        `Unable to load low-stock threshold (${err.response?.status || "Network error"}). Using the default threshold of 5.`
       );
+
+      console.error("Low-stock threshold API error:", {
+        status: err.response?.status,
+        response: err.response?.data,
+        message: err.message
+      });
     } finally {
       setThresholdLoading(false);
     }
@@ -375,13 +405,13 @@ export default function Inventory() {
         limit: 20
       });
 
-      setHistory(result.logs);
-      setHistoryPages(Math.max(1, result.pages));
+      setHistory(result.logs || []);
+      setHistoryPages(Math.max(1, result.pages || 1));
     } catch (err) {
       setError(
         err.response?.data?.message ||
-        err.message ||
-        "Unable to load inventory history"
+          err.message ||
+          "Unable to load inventory history"
       );
     } finally {
       setHistoryLoading(false);
@@ -417,24 +447,27 @@ export default function Inventory() {
     );
   }, [products]);
 
-  const stats = useMemo(() => ({
-    totalStock: inventoryItems.reduce(
-      (total, item) => total + item.stock,
-      0
-    ),
+  const stats = useMemo(
+    () => ({
+      totalStock: inventoryItems.reduce(
+        (total, item) => total + item.stock,
+        0
+      ),
 
-    lowStock: inventoryItems.filter(
-      (item) =>
-        item.stock > 0 &&
-        item.stock <= lowStockThreshold
-    ).length,
+      lowStock: inventoryItems.filter(
+        (item) =>
+          item.stock > 0 &&
+          item.stock <= lowStockThreshold
+      ).length,
 
-    outOfStock: inventoryItems.filter(
-      (item) => item.stock === 0
-    ).length,
+      outOfStock: inventoryItems.filter(
+        (item) => item.stock === 0
+      ).length,
 
-    totalVariants: inventoryItems.length
-  }), [inventoryItems, lowStockThreshold]);
+      totalVariants: inventoryItems.length
+    }),
+    [inventoryItems, lowStockThreshold]
+  );
 
   const filteredItems = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -485,12 +518,22 @@ export default function Inventory() {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-        err.message ||
-        "Unable to update stock"
+          err.message ||
+          "Unable to update stock"
       );
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleRefresh() {
+    await Promise.all([
+      loadInventory(),
+      loadThreshold(),
+      activeTab === "history"
+        ? loadHistory(historyPage)
+        : Promise.resolve()
+    ]);
   }
 
   return (
@@ -512,14 +555,7 @@ export default function Inventory() {
 
         <button
           type="button"
-          onClick={() => {
-            loadInventory();
-            loadThreshold();
-
-            if (activeTab === "history") {
-              loadHistory(historyPage);
-            }
-          }}
+          onClick={handleRefresh}
           disabled={loading || historyLoading || thresholdLoading}
           className="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 disabled:opacity-50"
         >
@@ -545,6 +581,21 @@ export default function Inventory() {
             aria-label="Dismiss"
           >
             <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {thresholdError && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <span>{thresholdError}</span>
+
+          <button
+            type="button"
+            onClick={loadThreshold}
+            disabled={thresholdLoading}
+            className="shrink-0 font-medium underline disabled:opacity-50"
+          >
+            Retry
           </button>
         </div>
       )}
@@ -753,6 +804,7 @@ export default function Inventory() {
 
             <div className="border-t border-stone-100 px-5 py-4 text-xs text-stone-500">
               Showing {filteredItems.length} of {inventoryItems.length} size options
+
               {!thresholdLoading && (
                 <span className="ml-2">
                   · Low-stock threshold: {lowStockThreshold}
