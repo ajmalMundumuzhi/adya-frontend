@@ -123,8 +123,8 @@ export default function Shop() {
           .map((product) => ({
             id: product.slug || product._id,
             name: product.name,
-            priceInr: product.price,
-            compareAtInr: product.compareAtPrice,
+            price: Number(product.price) || 0,
+            compareAtPrice: product.compareAtPrice ?? null,
             image:
               product.imagePath ||
               product.images?.[0] ||
@@ -245,7 +245,7 @@ export default function Shop() {
         </div>
 
         <p className="mt-3 text-xs text-ink/60">
-          Prices are filtered in INR; display currency follows your currency setting.
+          Prices are filtered in AUD; display currency follows your currency setting.
         </p>
       </div>
 

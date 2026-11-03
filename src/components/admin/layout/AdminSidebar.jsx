@@ -9,12 +9,14 @@ import {
   Package,
   Settings,
   Store,
+  Image,
   X
 } from "lucide-react";
 
 const navigation = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Products", path: "/admin/products", icon: ShoppingBag },
+  { label: "Banners", path: "/admin/banners", icon: Image },
   { label: "Orders", path: "/admin/orders", icon: ClipboardList },
   { label: "Customers", path: "/admin/customers", icon: Users },
   { label: "Categories", path: "/admin/categories", icon: Tags },
@@ -59,7 +61,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <p className="mb-4 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#a18c7c]">
             Main Menu
           </p>

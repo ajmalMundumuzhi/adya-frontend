@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 export async function getShippingRate(country, city) {
@@ -34,6 +33,32 @@ export async function createCheckoutOrder(payload) {
 
   if (!response.data?.success) {
     throw new Error(response.data?.message || "Unable to create your order");
+  }
+
+  return response.data.data;
+}
+
+export async function createStripeCheckoutSession(orderId) {
+  const response = await api.post("/payment-transactions/checkout-session", {
+    orderId
+  });
+
+  if (!response.data?.success || !response.data?.data?.checkoutUrl) {
+    throw new Error(
+      response.data?.message || "Unable to start Stripe Checkout"
+    );
+  }
+
+  return response.data.data;
+}
+
+export async function getPaymentStatus(sessionId) {
+  const response = await api.get(
+    `/payment-transactions/session/${encodeURIComponent(sessionId)}`
+  );
+
+  if (!response.data?.success) {
+    throw new Error(response.data?.message || "Unable to retrieve payment status");
   }
 
   return response.data.data;

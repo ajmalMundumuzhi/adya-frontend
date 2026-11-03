@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import HeroSlideshow from '../components/home/HeroSlideshow';
 import CategorySection from '../components/home/CategorySection';
@@ -5,7 +6,6 @@ import ProductSection from '../components/home/ProductSection';
 import BrandStory from '../components/home/BrandStory';
 import TrustBenefits from '../components/home/TrustBenefits';
 import Testimonials from '../components/home/Testimonials';
-import SocialGallery from '../components/home/SocialGallery';
 import Newsletter from '../components/home/Newsletter';
 import SeasonalBanner from '../components/home/SeasonalBanner';
 import { getProducts } from '../services/store.service';
@@ -30,8 +30,8 @@ export default function Home() {
           .map((product) => ({
             id: product.slug || product._id,
             name: product.name,
-            priceInr: product.price,
-            compareAtInr: product.compareAtPrice,
+            price: Number(product.price) || 0,
+            compareAtPrice: product.compareAtPrice ?? null,
             image:
               product.imagePath ||
               product.images?.[0] ||
@@ -106,7 +106,6 @@ export default function Home() {
       <SeasonalBanner />
       <TrustBenefits />
       <Testimonials />
-      {/* <SocialGallery /> */}
       <Newsletter />
     </div>
   );

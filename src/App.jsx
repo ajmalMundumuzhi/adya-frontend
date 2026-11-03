@@ -22,6 +22,8 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminProtectedRoute from "./components/admin/layout/AdminProtectedRoutes";
 import AdminLayout from "./components/admin/layout/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminBanners from "./pages/admin/Banner";
+import AdminAddBanner from "./pages/admin/AddBanner";
 import AdminProducts from "./pages/admin/Product";
 import AdminAddProduct from "./pages/admin/AddProduct";
 import AdminOrders from "./pages/admin/Orders";
@@ -30,6 +32,8 @@ import AdminCustomers from "./pages/admin/Customers";
 import AdminCategories from "./pages/admin/Categories";
 import AdminInventory from "./pages/admin/Inventory";
 import AdminSettings from "./pages/admin/Settings";
+import PaymentCancel from "./pages/PaymentCancel";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 export default function App() {
   return (
@@ -48,6 +52,8 @@ export default function App() {
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/payment/cancel" element={<PaymentCancel />} />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
         {/* <Route path="*" element={<RoutePlaceholder />} /> */}
       </Route>
 
@@ -58,6 +64,9 @@ export default function App() {
         <Route element={<AdminProtectedRoute />}>
           <Route element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="banners" element={<AdminBanners />} />
+            <Route path="banners/add" element={<AdminAddBanner />} />
+            <Route path="banners/:id/edit" element={<AdminAddBanner />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="products/add" element={<AdminAddProduct />} />
             <Route path="products/:id/edit" element={<AdminAddProduct />} />

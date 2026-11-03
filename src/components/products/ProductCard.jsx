@@ -7,12 +7,19 @@ export default function ProductCard({ product }) {
   const [showBack, setShowBack] = useState(false);
 
   if (!product) return null;
+    console.log("PRODUCT PRICE DEBUG:", {
+    product,
+    priceAUD: product.priceAUD,
+    priceInr: product.priceInr,
+    price: product.price,
+    compareAtAUD: product.compareAtAUD
+  });
 
   const {
     id,
     name,
-    priceInr,
-    compareAtInr,
+    price,
+    compareAtPrice,
     image,
     backImage,
     tag,
@@ -96,8 +103,8 @@ export default function ProductCard({ product }) {
 
         <div className="mt-2 text-sm">
           <Price
-            amountInr={priceInr}
-            compareAtInr={compareAtInr}
+            amountAUD={price}
+            compareAtAUD={compareAtPrice}
           />
         </div>
       </div>
