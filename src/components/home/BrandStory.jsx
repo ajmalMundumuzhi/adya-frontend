@@ -1,14 +1,18 @@
-import { ArrowUpRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+
+import { ArrowUpRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import useHomepageSettings from "../../hooks/useHomeSettings";
 
 export default function BrandStory() {
+  const { brandStory } = useHomepageSettings();
+
   return (
     <section className="overflow-hidden bg-[#D4BC98] text-[#493829]">
       <div className="mx-auto grid max-w-7xl md:grid-cols-2">
         <div className="relative min-h-[360px] md:min-h-[570px]">
           <img
-            src="https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1300&q=85"
-            alt="Detail of richly textured traditional Indian fabric"
+            src={brandStory.image}
+            alt={brandStory.imageAlt}
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
           />
@@ -17,29 +21,26 @@ export default function BrandStory() {
 
         <div className="flex flex-col justify-center px-6 py-14 sm:px-10 sm:py-20 lg:px-16">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#493829]/75">
-            The ADYA point of view
+            {brandStory.eyebrow}
           </p>
 
           <h2 className="mt-4 max-w-lg font-display text-4xl font-medium leading-tight sm:text-5xl lg:text-6xl">
-            A story of texture, colour and belonging.
+            {brandStory.title}
           </h2>
 
           <p className="mt-6 max-w-lg text-sm leading-7 text-[#493829]/85 sm:text-base sm:leading-8">
-            A saree can hold a memory, mark a new beginning or simply make an
-            ordinary day feel special. ADYA brings together a considered edit
-            of Indian-inspired drapes for the moments you make your own.
+            {brandStory.paragraphOne}
           </p>
 
           <p className="mt-4 max-w-lg text-sm leading-7 text-[#493829]/85 sm:text-base sm:leading-8">
-            Our story is still being written. Explore the collection and find
-            the pieces that speak to your personal style.
+            {brandStory.paragraphTwo}
           </p>
 
           <Link
             to="/our-story"
-            className="mt-8 inline-flex min-h-12 w-fit items-center gap-3 rounded-full border border-[#493829]/50 px-6 py-3 text-sm font-semibold text-[#493829] transition-colors hover:bg-[#F8F3E8] hover:border-[#B49A68]"
+            className="mt-8 inline-flex min-h-12 w-fit items-center gap-3 rounded-full border border-[#493829]/50 px-6 py-3 text-sm font-semibold text-[#493829] transition-colors hover:border-[#B49A68] hover:bg-[#F8F3E8]"
           >
-            Discover our story
+            {brandStory.linkLabel}
             <ArrowUpRight size={17} aria-hidden="true" />
           </Link>
         </div>

@@ -611,7 +611,7 @@ export default function AddProduct() {
             </span>
           </label>
 
-          <label className={labelClass}>
+          {/* <label className={labelClass}>
             Offer ID
             <input
               className={inputClass}
@@ -619,7 +619,7 @@ export default function AddProduct() {
               onChange={(event) => updateField("offerId", event.target.value)}
               placeholder="Optional offer ID"
             />
-          </label>
+          </label> */}
 
           <label className="flex items-center gap-3 self-end pb-3 text-sm text-[#624b40]">
             <input

@@ -10,12 +10,13 @@ import {
   CalendarDays,
   ShoppingBag,
   Truck,
+  FileText
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import useCurrency from "../../hooks/useCurrency";
 import {
   getMyOrders,
-  getMyOrderById,
+  getMyOrderById
 } from "../../services/orders.service";
 
 const formatDate = (date) => {
@@ -24,13 +25,16 @@ const formatDate = (date) => {
   return new Intl.DateTimeFormat("en-AU", {
     day: "2-digit",
     month: "long",
-    year: "numeric",
+    year: "numeric"
   }).format(new Date(date));
 };
 
-const formatOrderId = (id) => {
-  if (!id) return "Unavailable";
-  return `#${id.slice(-8).toUpperCase()}`;
+const formatOrderId = (order) => {
+  if (!order) return "Unavailable";
+
+  return order.orderNumber
+    ? `#${order.orderNumber}`
+    : `#${order._id?.slice(-8).toUpperCase() || "Unavailable"}`;
 };
 
 const getStatusStyle = (status) => {
@@ -59,10 +63,11 @@ const formatStatus = (status) => {
 
 function OrderDetails({ order, formatPrice }) {
   const address = order.shippingAddress;
+  const currency = order.currency || "AUD";
 
   return (
     <div className="border-t border-[#B49A68]/25 px-5 py-6 sm:px-6">
-      <h4 className="font-display text-xl">Order items</h4>
+      <h4 className="text-xl font-display">Order items</h4>
 
       <div className="mt-5 space-y-5">
         {order.items?.map((item, index) => (
@@ -75,16 +80,16 @@ function OrderDetails({ order, formatPrice }) {
                 <img
                   src={item.image}
                   alt={item.productName || "ADYA product"}
-                  className="h-full w-full object-cover"
+                  className="object-cover w-full h-full"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center">
+                <div className="flex items-center justify-center h-full">
                   <ShoppingBag size={22} />
                 </div>
               )}
             </div>
 
-            <div className="min-w-0 flex-1">
+            <div className="flex-1 min-w-0">
               <h5 className="font-medium">
                 {item.productName || "ADYA product"}
               </h5>
@@ -101,8 +106,9 @@ function OrderDetails({ order, formatPrice }) {
 
               <p className="mt-2 text-sm font-semibold">
                 {formatPrice(
-                  Number(item.unitPriceAUD ?? item.unitPrice ?? 0) *
-                    Number(item.quantity || 0)
+                  Number(item.unitPrice ?? 0) *
+                  Number(item.quantity || 0),
+                  currency
                 )}
               </p>
             </div>
@@ -119,14 +125,20 @@ function OrderDetails({ order, formatPrice }) {
 
           {address ? (
             <div className="mt-3 text-sm leading-6 text-[#493829]/70">
-              <p>{address.fullName}</p>
-              <p>{address.addressLine1}</p>
-              {address.addressLine2 && <p>{address.addressLine2}</p>}
-              <p>
-                {address.city}, {address.state} {address.postalCode}
-              </p>
-              <p>{address.country}</p>
-              <p>{address.phone}</p>
+              {typeof address === "string" ? (
+                <p>{address}</p>
+              ) : (
+                <>
+                  <p>{address.fullName}</p>
+                  <p>{address.addressLine1}</p>
+                  {address.addressLine2 && <p>{address.addressLine2}</p>}
+                  <p>
+                    {address.city}, {address.state} {address.postalCode}
+                  </p>
+                  <p>{address.country}</p>
+                  <p>{address.phone}</p>
+                </>
+              )}
             </div>
           ) : (
             <p className="mt-3 text-sm text-[#493829]/60">
@@ -142,24 +154,16 @@ function OrderDetails({ order, formatPrice }) {
           </div>
 
           <div className="mt-3 space-y-2 text-sm text-[#493829]/70">
+            <p>Method: {formatStatus(order.paymentMethod)}</p>
+            <p>Payment status: {formatStatus(order.paymentStatus)}</p>
             <p>
-              Method: {formatStatus(order.paymentMethod)}
+              Subtotal: {formatPrice(order.subtotal ?? 0, currency)}
             </p>
             <p>
-              Payment status: {formatStatus(order.paymentStatus)}
-            </p>
-            <p>
-              Subtotal: {formatPrice(order.subtotalAUD ?? order.subtotal ?? 0)}
-            </p>
-            <p>
-              Shipping: {formatPrice(
-                order.shippingChargeAUD ?? order.shippingCharge ?? 0
-              )}
+              Shipping: {formatPrice(order.shippingCharge ?? 0, currency)}
             </p>
             <p className="border-t border-[#B49A68]/25 pt-3 font-semibold text-[#493829]">
-              Total: {formatPrice(
-                order.totalAmountAUD ?? order.totalAmount ?? 0
-              )}
+              Total: {formatPrice(order.totalAmount ?? 0, currency)}
             </p>
           </div>
         </div>
@@ -182,7 +186,7 @@ function OrderDetails({ order, formatPrice }) {
               href={order.trackingUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 inline-flex text-sm font-medium underline underline-offset-4"
+              className="inline-flex mt-3 text-sm font-medium underline underline-offset-4"
             >
               Track shipment
             </a>
@@ -213,8 +217,8 @@ export default function AccountOrders() {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          err.message ||
-          "Unable to load your orders. Please try again."
+        err.message ||
+        "Unable to load your orders. Please try again."
       );
     } finally {
       setLoading(false);
@@ -242,12 +246,13 @@ export default function AccountOrders() {
 
       setDetailCache((current) => ({
         ...current,
-        [orderId]: order,
+        [orderId]: order
       }));
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          "Unable to load order details."
+        err.message ||
+        "Unable to load order details."
       );
     } finally {
       setDetailLoading("");
@@ -261,7 +266,7 @@ export default function AccountOrders() {
           Your purchases
         </p>
 
-        <h2 className="mt-2 font-display text-3xl sm:text-4xl">
+        <h2 className="mt-2 text-3xl font-display sm:text-4xl">
           My orders
         </h2>
 
@@ -282,7 +287,7 @@ export default function AccountOrders() {
           Your purchases
         </p>
 
-        <h2 className="mt-2 font-display text-3xl sm:text-4xl">
+        <h2 className="mt-2 text-3xl font-display sm:text-4xl">
           My orders
         </h2>
 
@@ -309,7 +314,7 @@ export default function AccountOrders() {
             Your purchases
           </p>
 
-          <h2 className="mt-2 font-display text-3xl sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-display sm:text-4xl">
             My orders
           </h2>
 
@@ -338,7 +343,7 @@ export default function AccountOrders() {
             <Package size={27} strokeWidth={1.4} />
           </div>
 
-          <h3 className="mt-5 font-display text-2xl">
+          <h3 className="mt-5 text-2xl font-display">
             No orders yet
           </h3>
 
@@ -374,7 +379,7 @@ export default function AccountOrders() {
                       </p>
 
                       <h3 className="mt-1 text-lg font-semibold">
-                        {formatOrderId(orderId)}
+                        {formatOrderId(order)}
                       </h3>
 
                       <div className="mt-2 flex items-center gap-2 text-xs text-[#493829]/65">
@@ -401,7 +406,7 @@ export default function AccountOrders() {
                             <img
                               src={item.image}
                               alt={item.productName || "Product"}
-                              className="h-full w-full object-cover"
+                              className="object-cover w-full h-full"
                             />
                           ) : (
                             <Package size={20} className="m-3" />
@@ -410,14 +415,18 @@ export default function AccountOrders() {
                       ))}
                     </div>
 
-                    <div className="min-w-0 flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">
                         {order.items?.length || 0} product
                         {order.items?.length === 1 ? "" : " items"}
                       </p>
 
                       <p className="mt-1 text-xs text-[#493829]/60">
-                        {order.items?.slice(0, 2).map((item) => item.productName).filter(Boolean).join(", ")}
+                        {order.items
+                          ?.slice(0, 2)
+                          .map((item) => item.productName)
+                          .filter(Boolean)
+                          .join(", ")}
                       </p>
                     </div>
 
@@ -428,7 +437,8 @@ export default function AccountOrders() {
 
                       <p className="mt-1 text-lg font-semibold">
                         {formatPrice(
-                          order.totalAmountAUD ?? order.totalAmount ?? 0
+                          order.totalAmount ?? 0,
+                          order.currency || "AUD"
                         )}
                       </p>
                     </div>
@@ -440,18 +450,28 @@ export default function AccountOrders() {
                       {formatStatus(order.paymentStatus)}
                     </p>
 
-                    <button
-                      type="button"
-                      onClick={() => handleExpand(orderId)}
-                      className="inline-flex min-h-10 items-center gap-2 border border-[#493829]/30 px-4 py-2 text-xs font-semibold uppercase tracking-wider hover:bg-[#D4BC98]/20"
-                    >
-                      {isExpanded ? "Hide details" : "View details"}
-                      {isExpanded ? (
-                        <ChevronUp size={15} />
-                      ) : (
-                        <ChevronDown size={15} />
-                      )}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        to={`/account/orders/${orderId}/invoice`}
+                        className="inline-flex min-h-10 items-center gap-2 bg-[#51cfae] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-[#39b998]"
+                      >
+                        <FileText size={15} />
+                        View Invoice
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => handleExpand(orderId)}
+                        className="inline-flex min-h-10 items-center gap-2 border border-[#493829]/30 px-4 py-2 text-xs font-semibold uppercase tracking-wider hover:bg-[#D4BC98]/20"
+                      >
+                        {isExpanded ? "Hide details" : "View details"}
+                        {isExpanded ? (
+                          <ChevronUp size={15} />
+                        ) : (
+                          <ChevronDown size={15} />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 

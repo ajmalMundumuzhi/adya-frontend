@@ -533,10 +533,7 @@ import { SOCIAL_LINKS } from '../../config/navigation';
 import { FacebookIcon, InstagramIcon, WhatsappIcon, YoutubeIcon } from './SocialIcons';
 
 const ICONS = {
-  facebook: FacebookIcon,
   instagram: InstagramIcon,
-  youtube: YoutubeIcon,
-  whatsapp: WhatsappIcon,
 };
 
 export default function SocialLinks({ className = '', itemClassName = '' }) {

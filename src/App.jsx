@@ -17,6 +17,7 @@ import Terms from "./pages/Terms";
 import Policy from "./pages/Policy";
 import RefundPolicy from "./pages/RefundPolicy";
 import Checkout from "./pages/Checkout";
+import CustomerInvoicePage from "./pages/CustomerInvoicePage";
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminProtectedRoute from "./components/admin/layout/AdminProtectedRoutes";
@@ -34,6 +35,7 @@ import AdminInventory from "./pages/admin/Inventory";
 import AdminSettings from "./pages/admin/Settings";
 import PaymentCancel from "./pages/PaymentCancel";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AdminInvoicePage from "./pages/admin/InvoicePage";
 
 export default function App() {
   return (
@@ -54,6 +56,7 @@ export default function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment/cancel" element={<PaymentCancel />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="account/orders/:id/invoice" element={<CustomerInvoicePage />} />
         {/* <Route path="*" element={<RoutePlaceholder />} /> */}
       </Route>
 
@@ -76,6 +79,7 @@ export default function App() {
             <Route path="categories" element={<AdminCategories />} />
             <Route path="inventory" element={<AdminInventory />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="orders/:id/invoice" element={<AdminInvoicePage />} />
           </Route>
         </Route>
       </Route>

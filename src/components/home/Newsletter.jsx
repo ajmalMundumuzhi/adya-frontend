@@ -1,40 +1,39 @@
-import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+
+import { useState } from "react";
+import { ArrowRight } from "lucide-react";
+import useHomepageSettings from "../../hooks/useHomeSettings";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Newsletter() {
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle');
-  const messageId = 'adya-newsletter-message';
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle");
+  const homepage = useHomepageSettings();
+  const newsletter = homepage.newsletter;
+  const messageId = "adya-newsletter-message";
 
   const submit = (event) => {
     event.preventDefault();
 
     if (!email.trim() || !EMAIL_PATTERN.test(email.trim())) {
-      setStatus('invalid');
+      setStatus("invalid");
       return;
     }
 
-    setStatus('success');
-    setEmail('');
+    setStatus("success");
+    setEmail("");
   };
 
   return (
     <section className="px-3 pb-12 sm:px-6 sm:pb-16 lg:px-10">
       <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-[#B49A68]/30 bg-[#D4BC98] px-5 py-12 text-center text-[#493829] sm:rounded-[2.5rem] sm:px-10 sm:py-16 lg:px-16 lg:py-20">
         <svg
-          className="absolute w-40 h-48 pointer-events-none -left-2 -top-3 opacity-80 sm:h-64 sm:w-52 lg:h-72 lg:w-60"
+          className="absolute -left-2 -top-3 h-48 w-40 pointer-events-none opacity-80 sm:h-64 sm:w-52 lg:h-72 lg:w-60"
           viewBox="0 0 220 300"
           fill="none"
           aria-hidden="true"
         >
-          <g
-            stroke="#F8F3E8"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <g stroke="#F8F3E8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 220C48 170 53 107 83 24" />
             <path d="M53 136C21 125 8 91 17 61C45 73 61 99 53 136Z" />
             <path d="M58 115C78 77 108 61 145 68C126 99 95 117 58 115Z" />
@@ -51,17 +50,12 @@ export default function Newsletter() {
         </svg>
 
         <svg
-          className="absolute w-40 h-48 rotate-180 pointer-events-none -bottom-5 -right-2 opacity-80 sm:h-64 sm:w-52 lg:h-72 lg:w-60"
+          className="absolute -bottom-5 -right-2 h-48 w-40 rotate-180 pointer-events-none opacity-80 sm:h-64 sm:w-52 lg:h-72 lg:w-60"
           viewBox="0 0 220 300"
           fill="none"
           aria-hidden="true"
         >
-          <g
-            stroke="#F8F3E8"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <g stroke="#F8F3E8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 220C48 170 53 107 83 24" />
             <path d="M53 136C21 125 8 91 17 61C45 73 61 99 53 136Z" />
             <path d="M58 115C78 77 108 61 145 68C126 99 95 117 58 115Z" />
@@ -77,18 +71,16 @@ export default function Newsletter() {
           </g>
         </svg>
 
-        <div className="relative z-10 max-w-3xl mx-auto">
+        <div className="relative z-10 mx-auto max-w-3xl">
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-[#493829]/85 sm:text-sm sm:tracking-[0.38em]">
-            Letters from ADYA
+            {newsletter.eyebrow}
           </p>
 
           <h2 className="mx-auto mt-7 max-w-3xl font-display text-4xl font-normal leading-[1.12] tracking-[-0.045em] text-[#493829] sm:mt-9 sm:text-5xl md:text-6xl lg:text-7xl">
-            A little elegance
-            <br />
-            in your inbox.
+            {newsletter.title}
           </h2>
 
-          <div className="flex items-center justify-center max-w-xs gap-3 mx-auto mt-6 sm:mt-8">
+          <div className="mx-auto mt-6 flex max-w-xs items-center justify-center gap-3 sm:mt-8">
             <span className="h-px flex-1 bg-[#8D7045]/70" />
             <svg
               viewBox="0 0 32 32"
@@ -106,17 +98,16 @@ export default function Newsletter() {
           </div>
 
           <p className="mx-auto mt-6 max-w-2xl text-base font-normal leading-7 text-[#493829]/85 sm:mt-8 sm:text-xl sm:leading-9">
-            Be the first to discover new arrivals,
-            <br className="hidden sm:block" /> pastel edits and styling inspiration.
+            {newsletter.description}
           </p>
 
           <form
             noValidate
             onSubmit={submit}
-            className="max-w-4xl mx-auto mt-8 sm:mt-10"
+            className="mx-auto mt-8 max-w-4xl sm:mt-10"
           >
             <label htmlFor="adya-newsletter-email" className="sr-only">
-              Your email address
+              {newsletter.placeholder}
             </label>
 
             <input
@@ -127,10 +118,10 @@ export default function Newsletter() {
               value={email}
               onChange={(event) => {
                 setEmail(event.target.value);
-                if (status !== 'idle') setStatus('idle');
+                if (status !== "idle") setStatus("idle");
               }}
-              placeholder="Your email address"
-              aria-invalid={status === 'invalid'}
+              placeholder={newsletter.placeholder}
+              aria-invalid={status === "invalid"}
               aria-describedby={messageId}
               className="h-14 w-full rounded-full border border-[#B49A68]/70 bg-[#FDFBF7] px-6 text-base text-[#493829] shadow-sm outline-none transition placeholder:text-[#493829]/55 focus:border-[#8D7045] focus:ring-2 focus:ring-[#8D7045]/20 sm:h-[76px] sm:px-9 sm:text-2xl"
             />
@@ -139,7 +130,7 @@ export default function Newsletter() {
               type="submit"
               className="group mt-4 flex h-14 w-full items-center justify-center gap-4 rounded-full border border-[#8D7045] bg-[#F8F0DF] px-6 font-display text-xl font-medium text-[#8D7045] transition duration-300 hover:bg-[#493829] hover:text-[#F8F3E8] sm:mt-5 sm:h-[76px] sm:gap-6 sm:text-3xl"
             >
-              Subscribe
+              {newsletter.buttonLabel}
               <ArrowRight
                 size={25}
                 strokeWidth={1.7}
@@ -150,20 +141,20 @@ export default function Newsletter() {
 
             <p
               id={messageId}
-              role={status === 'invalid' ? 'alert' : 'status'}
+              role={status === "invalid" ? "alert" : "status"}
               className={`mt-3 min-h-5 text-sm font-medium ${
-                status === 'invalid'
-                  ? 'text-red-800'
-                  : status === 'success'
-                    ? 'text-[#493829]'
-                    : 'text-transparent'
+                status === "invalid"
+                  ? "text-red-800"
+                  : status === "success"
+                    ? "text-[#493829]"
+                    : "text-transparent"
               }`}
             >
-              {status === 'invalid'
-                ? 'Please enter a valid email address.'
-                : status === 'success'
-                  ? 'Thank you! Your email has been validated locally.'
-                  : ' '}
+              {status === "invalid"
+                ? newsletter.invalidMessage
+                : status === "success"
+                  ? newsletter.successMessage
+                  : " "}
             </p>
           </form>
         </div>

@@ -113,3 +113,46 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .invoice-document,
+  .invoice-document * {
+    visibility: visible;
+  }
+
+  .invoice-document {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .invoice-document tr,
+  .invoice-document img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+}

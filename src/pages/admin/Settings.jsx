@@ -1,192 +1,132 @@
-import { useEffect, useState } from "react";
-import { Save, RefreshCw, Settings as SettingsIcon, Package } from "lucide-react";
-import adminApi from "../../services/admin/admin.api";
+
+import { useState } from "react";
+import SettingsLayout from "../../components/admin/settings/layout/SettingsLayout";
+import SettingsSidebar from "../../components/admin/settings/layout/SettingsSidebar";
+import SettingsHeader from "../../components/admin/settings/layout/SettingsHeader";
+import GeneralSettings from "../../components/admin/settings/sections/GeneralSettings";
+import AnnouncementSettings from "../../components/admin/settings/sections/AnnouncementSettings";
+import HeaderSettings from "../../components/admin/settings/sections/HeaderSettings";
+import HomepageSettings from "../../components/admin/settings/sections/HomepageSettings";
+import BrandStorySettings from "../../components/admin/settings/sections/BrandStorySettings";
+import SeasonalBannerSettings from "../../components/admin/settings/sections/SeasonalBannerSettings";
+import TrustBenefitsSettings from "../../components/admin/settings/sections/TrustBenifitsSettings";
+import NewsletterSettings from "../../components/admin/settings/sections/NewsletterSettings";
+import OurStorySettings from "../../components/admin/settings/sections/OurStorySettings";
+import FooterSettings from "../../components/admin/settings/sections/FooterSettings";
+import SocialMediaSettings from "../../components/admin/settings/sections/SocialMediaSettings";
+import PoliciesSettings from "../../components/admin/settings/sections/PoliciesSettings";
+import InventorySettings from "../../components/admin/settings/sections/InventorySettings";
+
+const SETTINGS_SECTIONS = [
+  { id: "general", label: "General Settings", group: "Website" },
+  { id: "announcement", label: "Announcement Bar", group: "Website" },
+  { id: "header", label: "Header & Navigation", group: "Website" },
+  { id: "homepage", label: "Homepage", group: "Website" },
+  { id: "brandStory", label: "Brand Story", group: "Website" },
+  { id: "seasonalBanner", label: "Seasonal Banner", group: "Website" },
+  { id: "trustBenefits", label: "Trust Benefits", group: "Website" },
+  { id: "newsletter", label: "Newsletter", group: "Website" },
+  { id: "ourStory", label: "Our Story Page", group: "Pages" },
+  { id: "footer", label: "Footer", group: "Website" },
+  { id: "socialMedia", label: "Social Media", group: "Website" },
+  { id: "policies", label: "Policies", group: "Pages" },
+  { id: "inventory", label: "Inventory", group: "Store" },
+];
+
+const SECTION_DESCRIPTIONS = {
+  general: "Manage your store identity and contact information.",
+  announcement: "Control the messages displayed in your announcement bar.",
+  header: "Manage your contact information and navigation labels.",
+  homepage: "Edit your homepage section headings and introductory content.",
+  brandStory: "Manage your homepage brand story section.",
+  seasonalBanner: "Edit your seasonal promotional banner.",
+  trustBenefits: "Manage the benefits displayed on your homepage.",
+  newsletter: "Manage your newsletter section content.",
+  ourStory: "Edit the content displayed on your Our Story page.",
+  footer: "Manage your website footer content and links.",
+  socialMedia: "Manage your social media profiles and links.",
+  policies: "Edit your Privacy Policy, Terms & Conditions, and Returns & Refunds Policy.",
+  inventory: "Configure your store inventory settings.",
+};
 
 export default function Settings() {
-  const [threshold, setThreshold] = useState(5);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [activeSection, setActiveSection] = useState("general");
 
-  async function loadSettings() {
-    try {
-      setLoading(true);
-      setError("");
+  const currentSection = SETTINGS_SECTIONS.find(
+    (section) => section.id === activeSection
+  );
 
-      const response = await adminApi.get(
-        "/settings/inventory.lowStockThreshold"
-      );
+  function renderSection() {
+    switch (activeSection) {
+      case "general":
+        return <GeneralSettings />;
 
-      setThreshold(response.data.data.value);
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Unable to load inventory settings"
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
+      case "announcement":
+        return <AnnouncementSettings />;
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
+      case "header":
+        return <HeaderSettings />;
 
-  async function handleSave(event) {
-    event.preventDefault();
+      case "homepage":
+        return <HomepageSettings />;
 
-    const value = Number(threshold);
+      case "brandStory":
+        return <BrandStorySettings />;
 
-    if (!Number.isInteger(value) || value < 1 || value > 100000) {
-      setError("Enter a whole number between 1 and 100000.");
-      return;
-    }
+      case "seasonalBanner":
+        return <SeasonalBannerSettings />;
 
-    try {
-      setSaving(true);
-      setError("");
-      setMessage("");
+      case "trustBenefits":
+        return <TrustBenefitsSettings />;
 
-      await adminApi.put("/settings/inventory.lowStockThreshold", {
-        value
-      });
+      case "newsletter":
+        return <NewsletterSettings />;
 
-      setThreshold(value);
-      setMessage("Inventory settings saved successfully.");
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Unable to save inventory settings"
-      );
-    } finally {
-      setSaving(false);
+      case "ourStory":
+        return <OurStorySettings />;
+
+      case "footer":
+        return <FooterSettings />;
+
+      case "socialMedia":
+        return <SocialMediaSettings />;
+
+      case "policies":
+        return <PoliciesSettings />;
+
+      case "inventory":
+        return <InventorySettings />;
+
+      default:
+        return (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
+            <h3 className="text-base font-semibold text-gray-800">
+              {currentSection?.label}
+            </h3>
+            <p className="mt-2 text-sm text-gray-500">
+              This section will be implemented in the next stage.
+            </p>
+          </div>
+        );
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-400">
-          Store configuration
-        </p>
+    <SettingsLayout>
+      <SettingsSidebar
+        sections={SETTINGS_SECTIONS}
+        activeSection={activeSection}
+        onChange={setActiveSection}
+      />
 
-        <h1 className="mt-1 text-2xl font-semibold text-stone-900">
-          Settings
-        </h1>
+      <main className="min-w-0 flex-1">
+        <SettingsHeader
+          title={currentSection?.label || "Settings"}
+          description={SECTION_DESCRIPTIONS[activeSection]}
+        />
 
-        <p className="mt-1 text-sm text-stone-500">
-          Manage your store's inventory preferences.
-        </p>
-      </div>
-
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {message && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {message}
-        </div>
-      )}
-
-      <div className="max-w-2xl overflow-hidden rounded-xl border border-stone-200 bg-white">
-        <div className="flex items-center gap-3 border-b border-stone-100 p-5">
-          <div className="rounded-lg bg-stone-100 p-2 text-stone-700">
-            <SettingsIcon size={19} />
-          </div>
-
-          <div>
-            <h2 className="font-semibold text-stone-900">
-              Inventory Management
-            </h2>
-            <p className="text-xs text-stone-500">
-              Configure stock notification preferences.
-            </p>
-          </div>
-        </div>
-
-        <form onSubmit={handleSave} className="space-y-5 p-5">
-          <div className="flex items-start gap-3 rounded-lg bg-stone-50 p-4">
-            <Package size={20} className="mt-0.5 text-stone-600" />
-
-            <div>
-              <p className="text-sm font-medium text-stone-800">
-                Low-stock threshold
-              </p>
-              <p className="mt-1 text-xs leading-5 text-stone-500">
-                Product sizes with stock at or below this quantity will be
-                classified as low stock. Zero stock is classified separately.
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-stone-700">
-              Low-stock quantity
-            </label>
-
-            <input
-              type="number"
-              min="1"
-              max="100000"
-              step="1"
-              required
-              disabled={loading}
-              value={threshold}
-              onChange={(event) => setThreshold(event.target.value)}
-              className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm outline-none focus:border-stone-500 disabled:bg-stone-50"
-              placeholder="Enter quantity"
-            />
-
-            <p className="mt-2 text-xs text-stone-400">
-              Example: If you enter 10, stock from 1 to 10 will be classified
-              as low stock.
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-stone-100 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
-              Preview
-            </p>
-
-            <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium">
-              <span className="rounded-full bg-red-50 px-3 py-2 text-red-700">
-                0 — Out of stock
-              </span>
-
-              <span className="rounded-full bg-amber-50 px-3 py-2 text-amber-700">
-                1–{Number(threshold) || 0} — Low stock
-              </span>
-
-              <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-700">
-                Above {Number(threshold) || 0} — In stock
-              </span>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={loadSettings}
-              disabled={loading || saving}
-              className="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-4 py-2.5 text-sm text-stone-700 disabled:opacity-50"
-            >
-              <RefreshCw size={15} />
-              Reload
-            </button>
-
-            <button
-              type="submit"
-              disabled={loading || saving}
-              className="inline-flex items-center gap-2 rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50"
-            >
-              <Save size={15} />
-              {saving ? "Saving..." : "Save settings"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {renderSection()}
+      </main>
+    </SettingsLayout>
   );
-}   
+}

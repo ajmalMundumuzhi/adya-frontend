@@ -3,7 +3,7 @@ export const SITE = {
   tagline: 'Sarees for Every Story',
   description: 'A considered edit of Indian-inspired sarees for celebrations, everyday elegance and meaningful moments.',
   phone: '+91 98765 43210',
-  email: 'hello@adya.example',
+  email: 'support@houseofadya.com',
 };
 
 export const ANNOUNCEMENTS = [

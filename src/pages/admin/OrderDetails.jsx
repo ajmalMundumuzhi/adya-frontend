@@ -10,7 +10,8 @@ import {
   User,
   RefreshCw,
   Save,
-  ExternalLink
+  ExternalLink,
+  FileText
 } from "lucide-react";
 import {
   getOrderById,
@@ -95,7 +96,7 @@ function addressLines(address) {
 function InfoCard({ title, icon: Icon, children }) {
   return (
     <section className="rounded-2xl border border-[#eee8df] bg-white p-5 sm:p-6">
-      <div className="mb-5 flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-5">
         <Icon size={18} className="text-[#8b6257]" />
         <h2 className="font-semibold text-[#4b2927]">{title}</h2>
       </div>
@@ -230,6 +231,7 @@ export default function OrderDetails() {
 
   const currency = order.currency || "AUD";
   const shippingAddress = addressLines(order.shippingAddress);
+
   const itemCount = (order.items || []).reduce(
     (total, item) => total + Number(item.quantity || 0),
     0
@@ -263,15 +265,25 @@ export default function OrderDetails() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={loadOrder}
-          disabled={loading}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#eee8df] bg-white px-4 py-3 text-sm text-[#715d50] hover:bg-[#faf8f4]"
-        >
-          <RefreshCw size={16} />
-          Refresh
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to={`/admin/orders/${id}/invoice`}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#51cfae] px-4 py-3 text-sm font-medium text-white hover:bg-[#39b998]"
+          >
+            <FileText size={16} />
+            View Invoice
+          </Link>
+
+          <button
+            type="button"
+            onClick={loadOrder}
+            disabled={loading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#eee8df] bg-white px-4 py-3 text-sm text-[#715d50] hover:bg-[#faf8f4]"
+          >
+            <RefreshCw size={16} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#eee8df] bg-white p-5">
@@ -302,13 +314,13 @@ export default function OrderDetails() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="px-4 py-3 text-sm text-red-700 border border-red-200 rounded-xl bg-red-50">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="px-4 py-3 text-sm text-green-700 border border-green-200 rounded-xl bg-green-50">
           {success}
         </div>
       )}
@@ -327,7 +339,7 @@ export default function OrderDetails() {
                       <img
                         src={item.image}
                         alt={item.productName}
-                        className="h-full w-full object-cover"
+                        className="object-cover w-full h-full"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-[#a18c7c]">
@@ -336,7 +348,7 @@ export default function OrderDetails() {
                     )}
                   </div>
 
-                  <div className="min-w-0 flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium text-[#4b2927]">
                       {item.productName}
                     </p>
