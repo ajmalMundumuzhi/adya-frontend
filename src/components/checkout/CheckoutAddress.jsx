@@ -1,18 +1,8 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createAddress } from "../../services/address.service";
 
-const COUNTRIES = [
-  "Australia",
-  "New Zealand",
-  "United States",
-  "Canada",
-  "United Kingdom",
-  "Malaysia",
-  "Singapore"
-];
-
-const initialForm = {
+const createInitialForm = (country = "") => ({
   fullName: "",
   phone: "",
   addressLine1: "",
@@ -20,10 +10,10 @@ const initialForm = {
   city: "",
   state: "",
   postalCode: "",
-  country: "Australia",
+  country,
   addressType: "Home",
   isDefault: false
-};
+});
 
 const inputClass =
   "w-full rounded-lg border border-stone-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-stone-700";
@@ -32,20 +22,51 @@ export default function CheckoutAddress({
   addresses = [],
   selectedAddressId,
   onSelect,
-  onAddressesChange
+  onAddressesChange,
+  countries = []
 }) {
   const [showForm, setShowForm] = useState(addresses.length === 0);
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(() =>
+    createInitialForm(countries[0]?.name || countries[0]?.country || "")
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!countries.length) return;
+
+    setForm(current => {
+      const available = countries.some(
+        country =>
+          (country.name || country.country) === current.country
+      );
+
+      if (available) return current;
+
+      return {
+        ...current,
+        country: countries[0].name || countries[0].country
+      };
+    });
+  }, [countries]);
+
   const updateField = (field, value) => {
-    setForm(current => ({ ...current, [field]: value }));
+    setForm(current => ({
+      ...current,
+      [field]: value
+    }));
   };
 
   const handleSubmit = async event => {
     event.preventDefault();
     setError("");
+
+    if (!countries.some(
+      country => (country.name || country.country) === form.country
+    )) {
+      setError("Please select a supported delivery country.");
+      return;
+    }
 
     try {
       setSaving(true);
@@ -55,26 +76,33 @@ export default function CheckoutAddress({
         country: form.country
       });
 
-      const newAddress = address?.address || address?.data || address;
+      const newAddress =
+        address?.address || address?.data || address;
 
       if (!newAddress?._id) {
-        throw new Error("Address was saved, but the returned address is invalid. Please refresh your addresses.");
+        throw new Error(
+          "Address was saved, but the returned address is invalid. Please refresh your addresses."
+        );
       }
 
       onAddressesChange([...addresses, newAddress]);
       onSelect(newAddress._id);
       setShowForm(false);
-      setForm(initialForm);
+      setForm(createInitialForm(form.country));
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Unable to save address");
+      setError(
+        err.response?.data?.message ||
+        err.message ||
+        "Unable to save address"
+      );
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <section className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6">
-      <div className="mb-5 flex items-center justify-between gap-3">
+    <section className="p-5 bg-white border rounded-2xl border-stone-200 sm:p-6">
+      <div className="flex items-center justify-between gap-3 mb-5">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
             Step 1
@@ -86,8 +114,11 @@ export default function CheckoutAddress({
 
         <button
           type="button"
-          onClick={() => setShowForm(value => !value)}
-          className="text-sm font-medium text-stone-700 underline underline-offset-4"
+          onClick={() => {
+            setShowForm(value => !value);
+            setError("");
+          }}
+          className="text-sm font-medium underline text-stone-700 underline-offset-4"
         >
           {showForm ? "Choose saved address" : "Add new address"}
         </button>
@@ -115,16 +146,18 @@ export default function CheckoutAddress({
                   }`}
                 />
 
-                <span className="min-w-0 flex-1">
+                <span className="flex-1 min-w-0">
                   <span className="flex flex-wrap items-center gap-2 font-medium text-stone-900">
                     {address.fullName}
+
                     {address.isDefault && (
                       <span className="rounded-full bg-stone-100 px-2 py-1 text-[10px] uppercase tracking-wide text-stone-600">
                         Default
                       </span>
                     )}
                   </span>
-                  <span className="mt-1 block text-sm leading-6 text-stone-600">
+
+                  <span className="block mt-1 text-sm leading-6 text-stone-600">
                     {address.addressLine1}
                     {address.addressLine2 && `, ${address.addressLine2}`}
                     <br />
@@ -154,14 +187,20 @@ export default function CheckoutAddress({
               className={inputClass}
               placeholder="Full name"
               value={form.fullName}
-              onChange={event => updateField("fullName", event.target.value)}
+              onChange={event =>
+                updateField("fullName", event.target.value)
+              }
               required
             />
+
             <input
               className={inputClass}
               placeholder="Phone number"
+              type="tel"
               value={form.phone}
-              onChange={event => updateField("phone", event.target.value)}
+              onChange={event =>
+                updateField("phone", event.target.value)
+              }
               required
             />
           </div>
@@ -170,7 +209,9 @@ export default function CheckoutAddress({
             className={inputClass}
             placeholder="Address line 1"
             value={form.addressLine1}
-            onChange={event => updateField("addressLine1", event.target.value)}
+            onChange={event =>
+              updateField("addressLine1", event.target.value)
+            }
             required
           />
 
@@ -178,7 +219,9 @@ export default function CheckoutAddress({
             className={inputClass}
             placeholder="Apartment, suite, landmark (optional)"
             value={form.addressLine2}
-            onChange={event => updateField("addressLine2", event.target.value)}
+            onChange={event =>
+              updateField("addressLine2", event.target.value)
+            }
           />
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -186,14 +229,19 @@ export default function CheckoutAddress({
               className={inputClass}
               placeholder="City"
               value={form.city}
-              onChange={event => updateField("city", event.target.value)}
+              onChange={event =>
+                updateField("city", event.target.value)
+              }
               required
             />
+
             <input
               className={inputClass}
               placeholder="State / Province"
               value={form.state}
-              onChange={event => updateField("state", event.target.value)}
+              onChange={event =>
+                updateField("state", event.target.value)
+              }
               required
             />
           </div>
@@ -203,21 +251,38 @@ export default function CheckoutAddress({
               className={inputClass}
               placeholder="Postal code"
               value={form.postalCode}
-              onChange={event => updateField("postalCode", event.target.value)}
+              onChange={event =>
+                updateField("postalCode", event.target.value)
+              }
               required
             />
 
             <select
               className={inputClass}
               value={form.country}
-              onChange={event => updateField("country", event.target.value)}
+              onChange={event =>
+                updateField("country", event.target.value)
+              }
               required
+              disabled={!countries.length}
             >
-              {COUNTRIES.map(country => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
+              {!countries.length && (
+                <option value="">Loading countries...</option>
+              )}
+
+              {countries.map(country => {
+                const name = country.name || country.country;
+
+                return (
+                  <option
+                    key={country.code || country.countryCode}
+                    value={name}
+                  >
+                    {country.flag ? `${country.flag} ` : ""}
+                    {name}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -225,7 +290,9 @@ export default function CheckoutAddress({
             <select
               className={inputClass}
               value={form.addressType}
-              onChange={event => updateField("addressType", event.target.value)}
+              onChange={event =>
+                updateField("addressType", event.target.value)
+              }
             >
               <option value="Home">Home</option>
               <option value="Work">Work</option>
@@ -236,8 +303,10 @@ export default function CheckoutAddress({
               <input
                 type="checkbox"
                 checked={form.isDefault}
-                onChange={event => updateField("isDefault", event.target.checked)}
-                className="h-4 w-4 accent-stone-900"
+                onChange={event =>
+                  updateField("isDefault", event.target.checked)
+                }
+                className="w-4 h-4 accent-stone-900"
               />
               Set as default address
             </label>
@@ -249,8 +318,8 @@ export default function CheckoutAddress({
 
           <button
             type="submit"
-            disabled={saving}
-            className="rounded-lg bg-stone-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={saving || !countries.length}
+            className="px-5 py-3 text-sm font-medium text-white transition rounded-lg bg-stone-900 hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "Saving address..." : "Save address"}
           </button>

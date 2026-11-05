@@ -16,7 +16,7 @@ export default function useCartSummary(cart = null) {
         ? source.items
         : [];
 
-    const getPrice = item => {
+    const getPrice = (item) => {
       const product = item.product || {};
 
       return Number(
@@ -30,7 +30,7 @@ export default function useCartSummary(cart = null) {
       );
     };
 
-    const getCompareAtPrice = item => {
+    const getCompareAtPrice = (item) => {
       const product = item.product || {};
 
       return Number(
@@ -42,14 +42,24 @@ export default function useCartSummary(cart = null) {
       );
     };
 
-    const itemCount = items.reduce(
+    const detailedLines = items.map((item) => {
+      const unit = getPrice(item);
+      const quantity = Number(item.quantity || 0);
+
+      return {
+        ...item,
+        unit,
+        lineTotal: unit * quantity,
+      };
+    });
+
+    const itemCount = detailedLines.reduce(
       (total, item) => total + Number(item.quantity || 0),
       0
     );
 
-    const subtotalAUD = items.reduce(
-      (total, item) =>
-        total + getPrice(item) * Number(item.quantity || 0),
+    const subtotalAUD = detailedLines.reduce(
+      (total, item) => total + item.lineTotal,
       0
     );
 
@@ -65,18 +75,18 @@ export default function useCartSummary(cart = null) {
     );
 
     return {
-      lines: items,
-      items,
+      lines: detailedLines,
+      items: detailedLines,
       itemCount,
       subtotalAUD,
       compareAtTotalAUD,
-      subtotal: convert(subtotalAUD),
-      compareAtTotal: convert(compareAtTotalAUD),
+      subtotal: subtotalAUD,
+      convertedSubtotal: convert(subtotalAUD),
       formattedSubtotal: formatPrice(subtotalAUD),
-      formattedCompareAtTotal: formatPrice(compareAtTotalAUD),
+      compareAtTotal: convert(compareAtTotalAUD),
       hasSavings: savingsAUD > 0,
       savingsAUD,
-      formattedSavings: formatPrice(savingsAUD)
+      formattedSavings: formatPrice(savingsAUD),
     };
   }, [cart, cartContext, convert, formatPrice]);
 }

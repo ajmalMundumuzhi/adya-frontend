@@ -286,7 +286,7 @@ export default function Shop() {
         </div>
       </div>
 
-      <div className="border-b border-burgundy/10 py-7">
+      {/* <div className="border-b border-burgundy/10 py-7">
         <h2 className="text-sm font-semibold uppercase tracking-wide">
           Filter by color
         </h2>
@@ -308,7 +308,7 @@ export default function Shop() {
           <option value="Black">Black</option>
           <option value="White">White</option>
         </select>
-      </div>
+      </div> */}
 
       <div className="py-7">
         <h2 className="text-sm font-semibold uppercase tracking-wide">

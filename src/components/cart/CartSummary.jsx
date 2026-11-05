@@ -33,8 +33,8 @@ export default function CartSummary({ subtotal, format }) {
       <button
         type="button"
         onClick={() => navigate("/checkout")}
-        title="Checkout will be enabled when the checkout flow is implemented"
-        className="flex w-full cursor-not-allowed items-center justify-center gap-3 bg-burgundy/60 px-5 py-4 text-xs font-semibold uppercase tracking-[0.15em] text-white"
+        title="Proceed to checkout"
+        className="flex w-full cursor-pointer items-center justify-center gap-3 bg-burgundy px-5 py-4 text-xs font-semibold uppercase tracking-[0.15em] text-white transition hover:bg-burgundy/90"
       >
         Proceed to checkout <ArrowRight size={16} />
       </button>

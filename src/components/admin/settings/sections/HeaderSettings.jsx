@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { getSetting, saveSetting } from "../../../../services/admin/settings.service";
 
 const DEFAULT_SETTINGS = {
-  callHeading: "Call Us",
   questionsHeading: "Any questions",
   phone: "+91 98765 43210",
   email: "support@houseofadya.com",

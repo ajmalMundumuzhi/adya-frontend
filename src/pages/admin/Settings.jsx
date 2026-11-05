@@ -16,6 +16,7 @@ import FooterSettings from "../../components/admin/settings/sections/FooterSetti
 import SocialMediaSettings from "../../components/admin/settings/sections/SocialMediaSettings";
 import PoliciesSettings from "../../components/admin/settings/sections/PoliciesSettings";
 import InventorySettings from "../../components/admin/settings/sections/InventorySettings";
+import ShippingSettings from "../../components/admin/settings/sections/ShippingSettings";
 
 const SETTINGS_SECTIONS = [
   { id: "general", label: "General Settings", group: "Website" },
@@ -31,6 +32,7 @@ const SETTINGS_SECTIONS = [
   { id: "socialMedia", label: "Social Media", group: "Website" },
   { id: "policies", label: "Policies", group: "Pages" },
   { id: "inventory", label: "Inventory", group: "Store" },
+  { id: "shipping", label: "Shipping & Countries", group: "Store" },
 ];
 
 const SECTION_DESCRIPTIONS = {
@@ -47,6 +49,7 @@ const SECTION_DESCRIPTIONS = {
   socialMedia: "Manage your social media profiles and links.",
   policies: "Edit your Privacy Policy, Terms & Conditions, and Returns & Refunds Policy.",
   inventory: "Configure your store inventory settings.",
+  shipping: "Manage supported countries, currencies, weight slabs and city-specific delivery rates.",
 };
 
 export default function Settings() {
@@ -96,10 +99,13 @@ export default function Settings() {
 
       case "inventory":
         return <InventorySettings />;
+        
+      case "shipping":
+        return <ShippingSettings />;
 
       default:
         return (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
+          <div className="p-8 text-center bg-white border border-gray-300 border-dashed rounded-xl">
             <h3 className="text-base font-semibold text-gray-800">
               {currentSection?.label}
             </h3>
@@ -119,7 +125,7 @@ export default function Settings() {
         onChange={setActiveSection}
       />
 
-      <main className="min-w-0 flex-1">
+      <main className="flex-1 min-w-0">
         <SettingsHeader
           title={currentSection?.label || "Settings"}
           description={SECTION_DESCRIPTIONS[activeSection]}

@@ -1,16 +1,20 @@
 import api from "./api";
 
-export async function getShippingRate(country, city) {
-  if (!country || !city) {
-    throw new Error("Select a country and city to calculate shipping");
+export async function getShippingRate(country, city, items) {
+  if (!country || !city || !Array.isArray(items) || !items.length) {
+    throw new Error("Country, city and cart items are required");
   }
 
-  const response = await api.get("/shipping/country", {
-    params: { country, city }
+  const response = await api.post("/shipping/quote", {
+    country,
+    city,
+    items
   });
 
   if (!response.data?.success) {
-    throw new Error(response.data?.message || "Unable to calculate shipping");
+    throw new Error(
+      response.data?.message || "Unable to calculate shipping"
+    );
   }
 
   return response.data.data;

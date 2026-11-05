@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -7,7 +6,9 @@ import {
   Trash2,
   Upload,
   X,
-  Save
+  Save,
+  ChevronDown,
+  Check
 } from "lucide-react";
 import {
   createProduct,
@@ -16,7 +17,6 @@ import {
   uploadProductImages
 } from "../../services/admin/products.service";
 import { getCategories } from "../../services/admin/categories.service";
-
 function createSize() {
   return {
     size: "",
@@ -24,10 +24,10 @@ function createSize() {
     price: "",
     compareAtPrice: "",
     stock: 0,
+    weightGrams: "",
     isActive: true
   };
 }
-
 function createVariant() {
   return {
     color: "",
@@ -37,14 +37,12 @@ function createVariant() {
     isActive: true
   };
 }
-
 function createDetail() {
   return {
     key: "",
     value: ""
   };
 }
-
 const initialForm = {
   name: "",
   slug: "",
@@ -56,7 +54,6 @@ const initialForm = {
   details: [createDetail()],
   variants: [createVariant()]
 };
-
 const standardDetails = [
   { key: "fabric", label: "Fabric", placeholder: "Pure Silk" },
   { key: "occasion", label: "Occasion", placeholder: "Wedding" },
@@ -74,28 +71,23 @@ const standardDetails = [
     placeholder: "India"
   }
 ];
-
 export default function AddProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = Boolean(id);
-
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState("");
-
+  const [subcategoryDropdownOpen, setSubcategoryDropdownOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
   useEffect(() => {
     let active = true;
-
     async function loadCategories() {
       try {
         const data = await getCategories();
-
         if (active) {
           setCategories(data);
         }
@@ -109,32 +101,24 @@ export default function AddProduct() {
         }
       }
     }
-
     loadCategories();
-
     return () => {
       active = false;
     };
   }, []);
-
   useEffect(() => {
     if (!isEditing) return;
-
     let active = true;
-
     async function loadProduct() {
       try {
         const product = await getProductById(id);
-
         if (!active) return;
-
         const existingDetails = Object.entries(product.details || {}).map(
           ([key, value]) => ({
             key,
             value: String(value ?? "")
           })
         );
-
         setForm({
           name: product.name || "",
           slug: product.slug || "",
@@ -159,6 +143,7 @@ export default function AddProduct() {
               price: size.price ?? "",
               compareAtPrice: size.compareAtPrice ?? "",
               stock: size.stock ?? 0,
+              weightGrams: size.weightGrams ?? "",
               isActive: size.isActive !== false
             }))
           }))
@@ -169,18 +154,14 @@ export default function AddProduct() {
         if (active) setLoading(false);
       }
     }
-
     loadProduct();
-
     return () => {
       active = false;
     };
   }, [id, isEditing]);
-
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
   }
-
   function updateDetail(index, field, value) {
     setForm((current) => ({
       ...current,
@@ -191,28 +172,23 @@ export default function AddProduct() {
       )
     }));
   }
-
   function addDetail() {
     setForm((current) => ({
       ...current,
       details: [...current.details, createDetail()]
     }));
   }
-
   function removeDetail(index) {
     setForm((current) => ({
       ...current,
       details: current.details.filter((_, i) => i !== index)
     }));
   }
-
   function addStandardDetail(detail) {
     const exists = form.details.some(
       (item) => item.key.toLowerCase() === detail.key.toLowerCase()
     );
-
     if (exists) return;
-
     setForm((current) => ({
       ...current,
       details: [
@@ -224,7 +200,6 @@ export default function AddProduct() {
       ]
     }));
   }
-
   function updateVariant(index, field, value) {
     setForm((current) => ({
       ...current,
@@ -235,13 +210,11 @@ export default function AddProduct() {
       )
     }));
   }
-
   function updateSize(variantIndex, sizeIndex, field, value) {
     setForm((current) => ({
       ...current,
       variants: current.variants.map((variant, index) => {
         if (index !== variantIndex) return variant;
-
         return {
           ...variant,
           sizes: variant.sizes.map((size, index) =>
@@ -251,21 +224,18 @@ export default function AddProduct() {
       })
     }));
   }
-
   function addVariant() {
     setForm((current) => ({
       ...current,
       variants: [...current.variants, createVariant()]
     }));
   }
-
   function removeVariant(index) {
     setForm((current) => ({
       ...current,
       variants: current.variants.filter((_, i) => i !== index)
     }));
   }
-
   function addSize(variantIndex) {
     setForm((current) => ({
       ...current,
@@ -276,7 +246,6 @@ export default function AddProduct() {
       )
     }));
   }
-
   function removeSize(variantIndex, sizeIndex) {
     setForm((current) => ({
       ...current,
@@ -290,10 +259,8 @@ export default function AddProduct() {
       )
     }));
   }
-
   function selectImages(variantIndex, files) {
     const selectedFiles = Array.from(files || []);
-
     setForm((current) => ({
       ...current,
       variants: current.variants.map((variant, index) =>
@@ -306,7 +273,6 @@ export default function AddProduct() {
       )
     }));
   }
-
   function removeExistingImage(variantIndex, imageIndex) {
     setForm((current) => ({
       ...current,
@@ -320,7 +286,6 @@ export default function AddProduct() {
       )
     }));
   }
-
   function removeNewImage(variantIndex, imageIndex) {
     setForm((current) => ({
       ...current,
@@ -334,89 +299,75 @@ export default function AddProduct() {
       )
     }));
   }
-
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
-
     if (!form.name.trim()) {
       setError("Product name is required");
       return;
     }
-
     if (!form.categoryId) {
       setError("Please select a category");
       return;
     }
-
     if (!form.variants.length) {
       setError("Add at least one product variant");
       return;
     }
-
     for (const variant of form.variants) {
       if (!variant.color.trim()) {
         setError("Every variant must have a colour");
         return;
       }
-
       if (!variant.sizes.length) {
         setError(`Add at least one size for ${variant.color}`);
         return;
       }
-
       for (const size of variant.sizes) {
         if (!size.size.trim() || size.price === "") {
           setError(`Enter the size and price for ${variant.color}`);
           return;
         }
-
         if (Number(size.price) < 0 || Number(size.stock) < 0) {
           setError("Price and stock cannot be negative");
           return;
         }
+
+        if (!Number.isFinite(Number(size.weightGrams)) || Number(size.weightGrams) <= 0) {
+          setError(`Enter a valid weight in grams for ${variant.color} - ${size.size}`);
+          return;
+        }
       }
     }
-
     const details = {};
-
     for (const detail of form.details) {
       const key = detail.key.trim();
       const value = detail.value.trim();
-
       if (!key && !value) continue;
-
       if (!key || !value) {
         setError("Complete or remove every additional detail field");
         return;
       }
-
       if (Object.prototype.hasOwnProperty.call(details, key)) {
         setError(`Duplicate product detail: ${key}`);
         return;
       }
-
       details[key] = value;
     }
-
     setSaving(true);
-
     try {
       const variants = await Promise.all(
         form.variants.map(async (variant) => {
           let images = [...variant.images];
-
           if (variant.imageFiles.length) {
             const uploaded = await uploadProductImages(
               variant.imageFiles
             );
-
             images = [
               ...images,
               ...uploaded.map((image) => image.imageUrl)
             ];
           }
-
           return {
             color: variant.color.trim(),
             images,
@@ -430,12 +381,12 @@ export default function AddProduct() {
                   ? null
                   : Number(size.compareAtPrice),
               stock: Number(size.stock),
+              weightGrams: Number(size.weightGrams),
               isActive: size.isActive
             }))
           };
         })
       );
-
       const payload = {
         name: form.name.trim(),
         slug: form.slug.trim() || undefined,
@@ -447,13 +398,11 @@ export default function AddProduct() {
         details,
         variants
       };
-
       if (isEditing) {
         await updateProduct(id, payload);
       } else {
         await createProduct(payload);
       }
-
       navigate("/admin/products", {
         replace: true,
         state: {
@@ -468,12 +417,9 @@ export default function AddProduct() {
       setSaving(false);
     }
   }
-
   const inputClass =
     "mt-2 w-full rounded-xl border border-[#e9e1d7] bg-white px-4 py-3 text-sm text-[#4b2927] outline-none transition focus:border-[#8b6257]";
-
   const labelClass = "text-sm font-medium text-[#624b40]";
-
   if (loading) {
     return (
       <div className="py-20 text-center text-sm text-[#927e6e]">
@@ -481,7 +427,6 @@ export default function AddProduct() {
       </div>
     );
   }
-
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center gap-3">
@@ -491,7 +436,6 @@ export default function AddProduct() {
         >
           <ArrowLeft size={19} />
         </Link>
-
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a18c7c]">
             Product management
@@ -501,18 +445,15 @@ export default function AddProduct() {
           </h1>
         </div>
       </div>
-
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
-
       <section className="rounded-2xl border border-[#eee8df] bg-white p-5 sm:p-7">
         <h2 className="text-lg font-semibold text-[#4b2927]">
           Basic Information
         </h2>
-
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <label className={labelClass}>
             Product Name *
@@ -524,7 +465,6 @@ export default function AddProduct() {
               required
             />
           </label>
-
           <label className={labelClass}>
             Product Slug
             <input
@@ -534,7 +474,6 @@ export default function AddProduct() {
               placeholder="adya-heritage-silk-saree"
             />
           </label>
-
           <label className={`${labelClass} sm:col-span-2`}>
             Description
             <textarea
@@ -547,7 +486,6 @@ export default function AddProduct() {
               placeholder="Describe the product..."
             />
           </label>
-
           <label className={labelClass}>
             Category *
             <select
@@ -566,7 +504,6 @@ export default function AddProduct() {
               <option value="">
                 {categoriesLoading ? "Loading categories..." : "Select category"}
               </option>
-
               {categories
                 .filter((category) => !category.parentId)
                 .map((category) => (
@@ -576,50 +513,107 @@ export default function AddProduct() {
                 ))}
             </select>
           </label>
-
-          <label className={labelClass}>
+          <div className={labelClass}>
             Subcategories
-            <select
-              multiple
-              className={`${inputClass} min-h-32`}
-              value={form.subcategoryIds}
-              disabled={!form.categoryId}
-              onChange={(event) => {
-                const selected = Array.from(
-                  event.target.selectedOptions,
-                  (option) => option.value
-                );
+            <div className="relative mt-2">
+              <button
+                type="button"
+                className={`${inputClass} mt-0 flex items-center justify-between gap-3 text-left disabled:cursor-not-allowed disabled:bg-[#f8f5f0] disabled:opacity-60`}
+                disabled={!form.categoryId}
+                aria-expanded={subcategoryDropdownOpen}
+                onClick={() =>
+                  setSubcategoryDropdownOpen((current) => !current)
+                }
+              >
+                <span className="truncate font-normal">
+                  {!form.categoryId
+                    ? "Select a category first"
+                    : form.subcategoryIds.length
+                      ? `${form.subcategoryIds.length} selected`
+                      : "Select subcategories"}
+                </span>
+                <ChevronDown
+                  size={17}
+                  className={`shrink-0 text-[#927e6e] transition-transform ${subcategoryDropdownOpen ? "rotate-180" : ""}`}
+                />
+              </button>
 
-                updateField("subcategoryIds", selected);
-              }}
-            >
-              {categories
-                .filter(
-                  (category) =>
-                    String(category.parentId?._id || category.parentId) ===
-                    String(form.categoryId)
-                )
-                .map((category) => (
-                  <option key={category._id} value={category._id}>
-                    {category.name}
-                  </option>
-                ))}
-            </select>
+              {subcategoryDropdownOpen && form.categoryId && (
+                <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-60 overflow-y-auto rounded-xl border border-[#e9e1d7] bg-white p-2 shadow-lg">
+                  {categories
+                    .filter(
+                      (category) =>
+                        String(category.parentId?._id || category.parentId) ===
+                        String(form.categoryId)
+                    )
+                    .map((category) => {
+                      const selected = form.subcategoryIds.includes(category._id);
 
-            <span className="mt-1 block text-xs font-normal text-[#a18c7c]">
-              Hold Ctrl (Windows) or Command (Mac) to select multiple.
-            </span>
-          </label>
-
-          {/* <label className={labelClass}>
-            Offer ID
-            <input
-              className={inputClass}
-              value={form.offerId}
-              onChange={(event) => updateField("offerId", event.target.value)}
-              placeholder="Optional offer ID"
-            />
-          </label> */}
+                      return (
+                        <button
+                          key={category._id}
+                          type="button"
+                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-normal text-[#624b40] transition hover:bg-[#f8f3ec]"
+                          onClick={() => {
+                            const nextSelected = selected
+                              ? form.subcategoryIds.filter(
+                                  (id) => id !== category._id
+                                )
+                              : [...form.subcategoryIds, category._id];
+                            updateField("subcategoryIds", nextSelected);
+                          }}
+                        >
+                          <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${selected ? "border-[#5b302e] bg-[#5b302e] text-white" : "border-[#d8cbbd] bg-white"}`}>
+                            {selected && <Check size={12} />}
+                          </span>
+                          <span>{category.name}</span>
+                        </button>
+                      );
+                    })}
+                  {categories.filter(
+                    (category) =>
+                      String(category.parentId?._id || category.parentId) ===
+                      String(form.categoryId)
+                  ).length === 0 && (
+                    <p className="px-3 py-2 text-sm font-normal text-[#a18c7c]">
+                      No subcategories available for this category.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+            {form.subcategoryIds.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {categories
+                  .filter((category) =>
+                    form.subcategoryIds.includes(category._id)
+                  )
+                  .map((category) => (
+                    <span
+                      key={category._id}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[#e9e1d7] bg-[#fffdf9] px-2.5 py-1 text-xs font-normal text-[#715d50]"
+                    >
+                      {category.name}
+                      <button
+                        type="button"
+                        aria-label={`Remove ${category.name}`}
+                        className="text-[#927e6e] hover:text-red-600"
+                        onClick={() =>
+                          updateField(
+                            "subcategoryIds",
+                            form.subcategoryIds.filter(
+                              (id) => id !== category._id
+                            )
+                          )
+                        }
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+              </div>
+            )}
+          </div>
 
           <label className="flex items-center gap-3 self-end pb-3 text-sm text-[#624b40]">
             <input
@@ -633,12 +627,10 @@ export default function AddProduct() {
             Product is active
           </label>
         </div>
-
         {categoriesError && (
           <p className="mt-3 text-sm text-red-600">{categoriesError}</p>
         )}
       </section>
-
       <section className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -649,7 +641,6 @@ export default function AddProduct() {
               Add different colours, images and size options.
             </p>
           </div>
-
           <button
             type="button"
             onClick={addVariant}
@@ -659,7 +650,6 @@ export default function AddProduct() {
             Add Colour
           </button>
         </div>
-
         {form.variants.map((variant, variantIndex) => (
           <div
             key={variantIndex}
@@ -669,7 +659,6 @@ export default function AddProduct() {
               <h3 className="font-semibold text-[#4b2927]">
                 Colour Variant {variantIndex + 1}
               </h3>
-
               {form.variants.length > 1 && (
                 <button
                   type="button"
@@ -681,7 +670,6 @@ export default function AddProduct() {
                 </button>
               )}
             </div>
-
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <label className={labelClass}>
                 Colour *
@@ -695,7 +683,6 @@ export default function AddProduct() {
                   required
                 />
               </label>
-
               <label className="flex items-center gap-3 self-end pb-3 text-sm text-[#624b40]">
                 <input
                   type="checkbox"
@@ -708,10 +695,8 @@ export default function AddProduct() {
                 Variant is active
               </label>
             </div>
-
             <div className="mt-6">
               <p className={labelClass}>Product Images</p>
-
               <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#e5d9cc] bg-[#fffdf9] px-4 py-7 text-center transition hover:bg-[#f8f3ec]">
                 <Upload size={23} className="text-[#8b6257]" />
                 <span className="mt-2 text-sm font-medium text-[#5b302e]">
@@ -731,7 +716,6 @@ export default function AddProduct() {
                   }}
                 />
               </label>
-
               {(variant.images.length > 0 ||
                 variant.imageFiles.length > 0) && (
                 <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-5">
@@ -754,7 +738,6 @@ export default function AddProduct() {
                       </button>
                     </div>
                   ))}
-
                   {variant.imageFiles.map((file, imageIndex) => (
                     <div key={`new-${imageIndex}`} className="relative">
                       <img
@@ -777,10 +760,8 @@ export default function AddProduct() {
                 </div>
               )}
             </div>
-
             <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
               <h4 className="font-medium text-[#4b2927]">Size Options</h4>
-
               <button
                 type="button"
                 onClick={() => addSize(variantIndex)}
@@ -790,7 +771,6 @@ export default function AddProduct() {
                 Add Size
               </button>
             </div>
-
             <div className="mt-4 space-y-4">
               {variant.sizes.map((size, sizeIndex) => (
                 <div
@@ -801,7 +781,6 @@ export default function AddProduct() {
                     <p className="text-sm font-medium text-[#715d50]">
                       Size {sizeIndex + 1}
                     </p>
-
                     {variant.sizes.length > 1 && (
                       <button
                         type="button"
@@ -813,7 +792,6 @@ export default function AddProduct() {
                       </button>
                     )}
                   </div>
-
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <label className={labelClass}>
                       Size *
@@ -832,7 +810,6 @@ export default function AddProduct() {
                         required
                       />
                     </label>
-
                     <label className={labelClass}>
                       SKU
                       <input
@@ -849,7 +826,6 @@ export default function AddProduct() {
                         placeholder="ADYA-MAR-FS"
                       />
                     </label>
-
                     <label className={labelClass}>
                       Price (AUD) *
                       <input
@@ -869,7 +845,6 @@ export default function AddProduct() {
                         required
                       />
                     </label>
-
                     <label className={labelClass}>
                       Compare-at Price (AUD)
                       <input
@@ -888,7 +863,6 @@ export default function AddProduct() {
                         }
                       />
                     </label>
-
                     <label className={labelClass}>
                       Stock Quantity
                       <input
@@ -908,6 +882,26 @@ export default function AddProduct() {
                       />
                     </label>
 
+                    <label className={labelClass}>
+                      Weight (grams) *
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        className={inputClass}
+                        value={size.weightGrams}
+                        onChange={(event) =>
+                          updateSize(
+                            variantIndex,
+                            sizeIndex,
+                            "weightGrams",
+                            event.target.value
+                          )
+                        }
+                        placeholder="Example: 850"
+                        required
+                      />
+                    </label>
                     <label className="flex items-center gap-3 self-end pb-3 text-sm text-[#624b40]">
                       <input
                         type="checkbox"
@@ -931,7 +925,6 @@ export default function AddProduct() {
           </div>
         ))}
       </section>
-
       <section className="rounded-2xl border border-[#eee8df] bg-white p-5 sm:p-7">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
@@ -943,19 +936,16 @@ export default function AddProduct() {
             </p>
           </div>
         </div>
-
         <div className="mt-5">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#a18c7c]">
             Suggested attributes
           </p>
-
           <div className="flex flex-wrap gap-2">
             {standardDetails.map((detail) => {
               const exists = form.details.some(
                 (item) =>
                   item.key.toLowerCase() === detail.key.toLowerCase()
               );
-
               return (
                 <button
                   key={detail.key}
@@ -971,7 +961,6 @@ export default function AddProduct() {
             })}
           </div>
         </div>
-
         <div className="mt-6 space-y-4">
           {form.details.map((detail, index) => (
             <div
@@ -989,7 +978,6 @@ export default function AddProduct() {
                   placeholder="Fabric"
                 />
               </label>
-
               <label className={labelClass}>
                 Attribute Value
                 <input
@@ -1001,7 +989,6 @@ export default function AddProduct() {
                   placeholder="Pure Silk"
                 />
               </label>
-
               <button
                 type="button"
                 onClick={() => removeDetail(index)}
@@ -1013,7 +1000,6 @@ export default function AddProduct() {
             </div>
           ))}
         </div>
-
         <button
           type="button"
           onClick={addDetail}
@@ -1023,7 +1009,6 @@ export default function AddProduct() {
           Add Custom Attribute
         </button>
       </section>
-
       <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
         <Link
           to="/admin/products"
@@ -1031,7 +1016,6 @@ export default function AddProduct() {
         >
           Cancel
         </Link>
-
         <button
           type="submit"
           disabled={saving}

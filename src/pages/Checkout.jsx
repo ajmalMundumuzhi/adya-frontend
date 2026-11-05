@@ -1,32 +1,31 @@
 
 import { useCallback, useEffect, useMemo, useState, useContext } from "react";
 import { Link } from "react-router-dom";
+
 import useCart from "../hooks/useCart";
 import CurrencyContext from "../context/CurrencyContext";
+
 import { getAddresses } from "../services/address.service";
+
 import {
   createCheckoutOrder,
   createStripeCheckoutSession,
   getShippingRate
 } from "../services/checkout.service";
+
 import CheckoutAddress from "../components/checkout/CheckoutAddress";
 import CheckoutOrderSummary from "../components/checkout/CheckoutOrderSummary";
-
-const COUNTRY_CURRENCIES = {
-  Australia: "AUD",
-  "New Zealand": "NZD",
-  "United States": "USD",
-  Canada: "CAD",
-  "United Kingdom": "GBP",
-  Malaysia: "MYR",
-  Singapore: "SGD"
-};
 
 export default function Checkout() {
   const { lines } = useCart();
   const currencyContext = useContext(CurrencyContext);
 
-  const { country: selectedCountry } = currencyContext || {};
+  const {
+    country: selectedCountry,
+    countries = [],
+    countriesLoading = false,
+    rates = {}
+  } = currencyContext || {};
 
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
@@ -38,24 +37,46 @@ export default function Checkout() {
   const [pendingOrder, setPendingOrder] = useState(null);
 
   const selectedAddress = useMemo(
-    () => addresses.find(address => address._id === selectedAddressId),
-    [addresses, selectedAddressId]
+  () =>
+    addresses.find(
+      address => String(address._id) === String(selectedAddressId)
+    ),
+  [addresses, selectedAddressId]
+);
+
+  const addressCountry = useMemo(
+    () =>
+      countries.find(
+        country =>
+          country.name?.toLowerCase() ===
+          selectedAddress?.country?.toLowerCase()
+      ),
+    [countries, selectedAddress]
   );
 
-  const orderCurrency = selectedAddress
-    ? COUNTRY_CURRENCIES[selectedAddress.country]
-    : selectedCountry?.currency || "AUD";
+  const orderCurrency =
+    addressCountry?.currency || selectedCountry?.currency || "AUD";
+
+  const orderLocale =
+    addressCountry?.locale || selectedCountry?.locale || "en-AU";
 
   const formatOrderPrice = useCallback(
     amountAUD => {
-      const rate = Number(currencyContext?.rates?.[orderCurrency] || 1);
+      const rate =
+        orderCurrency === "AUD" ? 1 : Number(rates[orderCurrency]);
 
-      return new Intl.NumberFormat(undefined, {
+      if (!Number.isFinite(rate) || rate <= 0) {
+        return "Price unavailable";
+      }
+
+      return new Intl.NumberFormat(orderLocale, {
         style: "currency",
-        currency: orderCurrency
+        currency: orderCurrency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
       }).format(Number(amountAUD || 0) * rate);
     },
-    [currencyContext?.rates, orderCurrency]
+    [rates, orderCurrency, orderLocale]
   );
 
   useEffect(() => {
@@ -69,11 +90,12 @@ export default function Checkout() {
 
         if (!active) return;
 
+        const activeCountryNames = new Set(
+          countries.map(country => country.name?.toLowerCase())
+        );
+
         const supported = result.filter(address =>
-          Object.prototype.hasOwnProperty.call(
-            COUNTRY_CURRENCIES,
-            address.country
-          )
+          activeCountryNames.has(address.country?.toLowerCase())
         );
 
         setAddresses(supported);
@@ -83,6 +105,8 @@ export default function Checkout() {
 
         if (defaultAddress) {
           setSelectedAddressId(defaultAddress._id);
+        } else {
+          setSelectedAddressId("");
         }
       } catch (err) {
         if (active) {
@@ -97,12 +121,14 @@ export default function Checkout() {
       }
     }
 
-    loadAddresses();
+    if (!countriesLoading) {
+      loadAddresses();
+    }
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [countries, countriesLoading]);
 
   useEffect(() => {
     let active = true;
@@ -116,15 +142,25 @@ export default function Checkout() {
         setLoadingShipping(true);
         setError("");
 
+        const shippingItems = lines.map(line => ({
+          productId: String(line.productId || line.product?.productId || ""),
+          variantId: String(line.variantId || ""),
+          sizeOptionId: String(line.sizeOptionId || ""),
+          quantity: Number(line.quantity)
+        }));
+
         const result = await getShippingRate(
           selectedAddress.country,
-          selectedAddress.city
+          selectedAddress.city,
+          shippingItems
         );
 
         const rate = Number(result?.rate ?? result?.shippingRate?.rate);
 
         if (!Number.isFinite(rate) || rate < 0) {
-          throw new Error("The shipping response did not contain a valid rate");
+          throw new Error(
+            "The shipping response did not contain a valid rate"
+          );
         }
 
         if (active) setShippingChargeAUD(rate);
@@ -154,6 +190,12 @@ export default function Checkout() {
     setError("");
   };
 
+  const handleAddressesChange = updatedAddresses => {
+    setAddresses(updatedAddresses);
+    setPendingOrder(null);
+    setError("");
+  };
+
   const getOrderId = order => {
     return (
       order?._id ||
@@ -173,6 +215,11 @@ export default function Checkout() {
       return;
     }
 
+    if (!addressCountry) {
+      setError("Delivery is not available in this country");
+      return;
+    }
+
     if (shippingChargeAUD === null) {
       setError("Shipping has not been calculated for this address");
       return;
@@ -183,12 +230,7 @@ export default function Checkout() {
       return;
     }
 
-    const currency = COUNTRY_CURRENCIES[selectedAddress.country];
-
-    if (!currency) {
-      setError("Delivery is not available in this country");
-      return;
-    }
+    const currency = addressCountry.currency;
 
     const items = lines.map(line => ({
       productId: String(
@@ -249,7 +291,9 @@ export default function Checkout() {
       const orderId = getOrderId(order);
 
       if (!orderId) {
-        throw new Error("Unable to identify your order. Please contact support.");
+        throw new Error(
+          "Unable to identify your order. Please contact support."
+        );
       }
 
       const session = await createStripeCheckoutSession(orderId);
@@ -279,9 +323,19 @@ export default function Checkout() {
     }
   };
 
+  if (countriesLoading || loadingAddresses) {
+    return (
+      <main className="max-w-3xl px-4 py-20 mx-auto text-center">
+        <p className="text-sm text-stone-500">
+          Loading checkout...
+        </p>
+      </main>
+    );
+  }
+
   if (!lines.length && !pendingOrder) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-20 text-center">
+      <main className="max-w-3xl px-4 py-20 mx-auto text-center">
         <h1 className="text-2xl font-semibold text-stone-900">
           Your cart is empty
         </h1>
@@ -292,7 +346,7 @@ export default function Checkout() {
 
         <Link
           to="/shop"
-          className="mt-6 inline-flex rounded-lg bg-stone-900 px-6 py-3 text-sm font-medium text-white"
+          className="inline-flex px-6 py-3 mt-6 text-sm font-medium text-white rounded-lg bg-stone-900"
         >
           Explore collection
         </Link>
@@ -301,7 +355,7 @@ export default function Checkout() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <main className="px-4 py-10 mx-auto max-w-7xl sm:px-6 lg:px-8">
       <div className="mb-8">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
           ADYA / Checkout
@@ -318,20 +372,15 @@ export default function Checkout() {
 
       <div className="grid items-start gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         <div className="space-y-6">
-          {loadingAddresses ? (
-            <div className="rounded-2xl border border-stone-200 p-6 text-sm text-stone-500">
-              Loading your saved addresses...
-            </div>
-          ) : (
-            <CheckoutAddress
-              addresses={addresses}
-              selectedAddressId={selectedAddressId}
-              onSelect={handleAddressSelect}
-              onAddressesChange={setAddresses}
-            />
-          )}
+          <CheckoutAddress
+            addresses={addresses}
+            selectedAddressId={selectedAddressId}
+            onSelect={handleAddressSelect}
+            onAddressesChange={handleAddressesChange}
+            countries={countries}
+          />
 
-          <div className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6">
+          <div className="p-5 bg-white border rounded-2xl border-stone-200 sm:p-6">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
               Step 3
             </p>
@@ -340,7 +389,7 @@ export default function Checkout() {
               Payment
             </h2>
 
-            <div className="mt-4 rounded-xl bg-stone-50 p-4">
+            <div className="p-4 mt-4 rounded-xl bg-stone-50">
               <p className="text-sm font-medium text-stone-800">
                 Secure online payment
               </p>
@@ -354,7 +403,7 @@ export default function Checkout() {
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <div className="p-4 text-sm text-red-700 border border-red-200 rounded-xl bg-red-50">
               {error}
             </div>
           )}
@@ -364,13 +413,13 @@ export default function Checkout() {
             onClick={handlePlaceOrder}
             disabled={
               placingOrder ||
-              loadingAddresses ||
               loadingShipping ||
               !selectedAddress ||
+              !addressCountry ||
               shippingChargeAUD === null ||
               !lines.length
             }
-            className="w-full rounded-lg bg-stone-900 px-6 py-4 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full px-6 py-4 text-sm font-semibold text-white transition rounded-lg bg-stone-900 hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {placingOrder
               ? "Redirecting to secure payment..."
@@ -379,7 +428,7 @@ export default function Checkout() {
                 : "Continue to payment"}
           </button>
 
-          <p className="text-center text-xs leading-5 text-stone-500">
+          <p className="text-xs leading-5 text-center text-stone-500">
             Your payment is processed securely by Stripe. Your order is not
             marked as paid until Stripe confirms the transaction.
           </p>

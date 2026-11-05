@@ -21,6 +21,26 @@ const currency = new Intl.NumberFormat("en-AU", {
   currency: "AUD"
 });
 
+function getProductPrice(product) {
+  const prices = (product.variants || [])
+    .flatMap((variant) => variant.sizes || [])
+    .map((size) => Number(size.price))
+    .filter((price) => Number.isFinite(price) && price >= 0);
+
+  if (!prices.length) {
+    return "Price unavailable";
+  }
+
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+
+  if (minPrice === maxPrice) {
+    return currency.format(minPrice);
+  }
+
+  return `${currency.format(minPrice)} – ${currency.format(maxPrice)}`;
+}
+
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
@@ -42,9 +62,9 @@ export default function Products() {
         search: search.trim() || undefined
       });
 
-      setProducts(result.products);
+      setProducts(result.products || []);
       setPages(result.pages || 1);
-      setTotal(result.total);
+      setTotal(result.total || 0);
     } catch (err) {
       setError(err.message || "Unable to load products");
     } finally {
@@ -89,9 +109,11 @@ export default function Products() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a18c7c]">
             Store management
           </p>
+
           <h1 className="mt-2 text-2xl font-semibold text-[#4b2927]">
             Products
           </h1>
+
           <p className="mt-1 text-sm text-[#927e6e]">
             Manage your saree collection and product inventory.
           </p>
@@ -109,9 +131,12 @@ export default function Products() {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-[#eee8df] bg-white p-5">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-[#927e6e]">Total active products</p>
+            <p className="text-sm text-[#927e6e]">
+              Total active products
+            </p>
             <Package size={20} className="text-[#9b806b]" />
           </div>
+
           <p className="mt-3 text-2xl font-semibold text-[#4b2927]">
             {total}
           </p>
@@ -119,8 +144,12 @@ export default function Products() {
 
         <div className="rounded-2xl border border-[#eee8df] bg-white p-5">
           <p className="text-sm text-[#927e6e]">Current page</p>
+
           <p className="mt-3 text-2xl font-semibold text-[#4b2927]">
-            {page} <span className="text-base font-normal text-[#a18c7c]">/ {pages}</span>
+            {page}{" "}
+            <span className="text-base font-normal text-[#a18c7c]">
+              / {pages}
+            </span>
           </p>
         </div>
       </div>
@@ -132,6 +161,7 @@ export default function Products() {
               size={18}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a18c7c]"
             />
+
             <input
               value={search}
               onChange={(event) => handleSearch(event.target.value)}
@@ -146,13 +176,16 @@ export default function Products() {
             disabled={loading}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#eee8df] px-4 py-3 text-sm text-[#715d50] hover:bg-[#faf8f4] disabled:opacity-50"
           >
-            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            <RefreshCw
+              size={16}
+              className={loading ? "animate-spin" : ""}
+            />
             Refresh
           </button>
         </div>
 
         {error && (
-          <div className="m-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="px-4 py-3 m-4 text-sm text-red-700 border border-red-200 rounded-xl bg-red-50">
             {error}
           </div>
         )}
@@ -166,26 +199,35 @@ export default function Products() {
                 <th className="px-5 py-4 font-medium">Price</th>
                 <th className="px-5 py-4 font-medium">Stock</th>
                 <th className="px-5 py-4 font-medium">Status</th>
-                <th className="px-5 py-4 text-right font-medium">Actions</th>
+                <th className="px-5 py-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-[#f0ebe4]">
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="px-5 py-16 text-center text-sm text-[#927e6e]">
+                  <td
+                    colSpan="6"
+                    className="px-5 py-16 text-center text-sm text-[#927e6e]"
+                  >
                     Loading products...
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-5 py-16 text-center text-sm text-[#927e6e]">
+                  <td
+                    colSpan="6"
+                    className="px-5 py-16 text-center text-sm text-[#927e6e]"
+                  >
                     No products found.
                   </td>
                 </tr>
               ) : (
                 products.map((product) => (
-                  <tr key={product._id} className="transition hover:bg-[#fffdf9]">
+                  <tr
+                    key={product._id}
+                    className="transition hover:bg-[#fffdf9]"
+                  >
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-14 w-12 shrink-0 overflow-hidden rounded-lg bg-[#f5f0e9]">
@@ -193,7 +235,7 @@ export default function Products() {
                             <img
                               src={product.imagePath}
                               alt={product.name}
-                              className="h-full w-full object-cover"
+                              className="object-cover w-full h-full"
                             />
                           ) : (
                             <div className="flex h-full items-center justify-center text-[#a18c7c]">
@@ -201,10 +243,12 @@ export default function Products() {
                             </div>
                           )}
                         </div>
+
                         <div>
                           <p className="font-medium text-[#4b2927]">
                             {product.name}
                           </p>
+
                           <p className="mt-1 text-xs text-[#a18c7c]">
                             {product.slug || product._id}
                           </p>
@@ -217,7 +261,7 @@ export default function Products() {
                     </td>
 
                     <td className="px-5 py-4 text-sm font-medium text-[#4b2927]">
-                      {currency.format(Number(product.price || 0))}
+                      {getProductPrice(product)}
                     </td>
 
                     <td className="px-5 py-4 text-sm text-[#715d50]">
@@ -225,7 +269,7 @@ export default function Products() {
                     </td>
 
                     <td className="px-5 py-4">
-                      <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                      <span className="px-3 py-1 text-xs font-medium text-green-700 rounded-full bg-green-50">
                         Active
                       </span>
                     </td>
@@ -245,7 +289,7 @@ export default function Products() {
                           title="Deactivate product"
                           onClick={() => handleDeactivate(product)}
                           disabled={actionId === product._id}
-                          className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                          className="p-2 text-red-600 border border-red-100 rounded-lg hover:bg-red-50 disabled:opacity-50"
                         >
                           <Trash2 size={16} />
                         </button>
