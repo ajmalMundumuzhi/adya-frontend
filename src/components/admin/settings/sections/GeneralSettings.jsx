@@ -26,7 +26,7 @@ function FormField({
   multiline = false,
 }) {
   const className =
-    "w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-gray-900";
+    "w-full px-4 py-3 text-sm transition bg-white border border-gray-200 rounded-lg outline-none focus:border-gray-900";
 
   return (
     <div className="space-y-2">
@@ -86,12 +86,12 @@ function ImageUploader({
       </label>
 
       <div className="flex flex-wrap items-center gap-5">
-        <div className="flex h-24 w-40 items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
+        <div className="flex items-center justify-center w-40 h-24 p-3 overflow-hidden border border-gray-300 border-dashed rounded-lg bg-gray-50">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={`${label} preview`}
-              className="max-h-full max-w-full object-contain"
+              className="object-contain max-w-full max-h-full"
             />
           ) : (
             <span className="text-xs text-gray-400">
@@ -235,7 +235,7 @@ export default function GeneralSettings() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-gray-100 bg-white p-8 text-sm text-gray-500">
+      <div className="p-8 text-sm text-gray-500 bg-white border border-gray-100 rounded-xl">
         Loading general settings...
       </div>
     );
@@ -243,7 +243,7 @@ export default function GeneralSettings() {
 
   return (
     <form onSubmit={handleSave} className="space-y-6">
-      <div className="rounded-xl border border-gray-100 bg-white p-6">
+      <div className="p-6 bg-white border border-gray-100 rounded-xl">
         <div className="mb-6">
           <h3 className="text-base font-semibold text-gray-900">
             Website Information
@@ -280,7 +280,7 @@ export default function GeneralSettings() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-100 bg-white p-6">
+      <div className="p-6 bg-white border border-gray-100 rounded-xl">
         <div className="mb-6">
           <h3 className="text-base font-semibold text-gray-900">
             Contact Information
@@ -308,7 +308,7 @@ export default function GeneralSettings() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-100 bg-white p-6">
+      <div className="p-6 bg-white border border-gray-100 rounded-xl">
         <div className="mb-6">
           <h3 className="text-base font-semibold text-gray-900">
             Brand Assets
@@ -340,13 +340,13 @@ export default function GeneralSettings() {
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+        <p className="px-4 py-3 text-sm text-red-600 rounded-lg bg-red-50">
           {error}
         </p>
       )}
 
       {success && (
-        <p className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+        <p className="px-4 py-3 text-sm text-green-700 rounded-lg bg-green-50">
           {success}
         </p>
       )}
@@ -355,7 +355,7 @@ export default function GeneralSettings() {
         <button
           type="submit"
           disabled={saving || Boolean(uploadingAsset)}
-          className="rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="px-6 py-3 text-sm font-medium text-white transition bg-gray-900 rounded-lg hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {saving ? "Saving..." : "Save General Settings"}
         </button>

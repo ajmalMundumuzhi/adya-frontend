@@ -1,4 +1,3 @@
-
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -10,7 +9,8 @@ import {
   Settings,
   Store,
   Image,
-  X
+  Star,
+  X,
 } from "lucide-react";
 
 const navigation = [
@@ -21,7 +21,8 @@ const navigation = [
   { label: "Customers", path: "/admin/customers", icon: Users },
   { label: "Categories", path: "/admin/categories", icon: Tags },
   { label: "Inventory", path: "/admin/inventory", icon: Package },
-  { label: "Settings", path: "/admin/settings", icon: Settings }
+  { label: "Reviews", path: "/admin/reviews", icon: Star },
+  { label: "Settings", path: "/admin/settings", icon: Settings },
 ];
 
 export default function AdminSidebar({ isOpen, onClose }) {

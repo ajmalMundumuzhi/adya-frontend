@@ -10,8 +10,8 @@ export const DEFAULT_HOMEPAGE_SETTINGS = {
     linkLabel: "View all new arrivals",
   },
   collection: {
-    eyebrow: "Our collection",
-    title: "Explore our sarees",
+    eyebrow: "LOVED CLASSICS",
+    title: "Best Sellers",
     description: "Discover timeless pieces from the ADYA collection.",
     linkLabel: "Shop all sarees",
   },

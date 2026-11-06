@@ -4,7 +4,6 @@ import api from "../services/api";
 import { SITE } from "../config/site";
 
 export const DEFAULT_HEADER_SETTINGS = {
-  callHeading: "Call Us",
   questionsHeading: "Any questions",
   phone: SITE.phone,
   email: SITE.email,

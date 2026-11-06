@@ -4,7 +4,6 @@ import { getSetting, saveSetting } from "../../../../services/admin/settings.ser
 
 const DEFAULT_SETTINGS = {
   questionsHeading: "Any questions",
-  phone: "+91 98765 43210",
   email: "support@houseofadya.com",
   navigation: {
     home: "Home",

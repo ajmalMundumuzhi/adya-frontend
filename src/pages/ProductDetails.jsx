@@ -28,12 +28,11 @@ import {
   addWishlistItem,
   removeWishlistItem,
 } from "../services/wishlist.service";
-
+import ReviewSection from "../components/reviews/ReviewSection";
 const benefits = [
   { icon: ShieldCheck, title: "Secure Payment", description: "100% secure checkout" },
   { icon: Leaf, title: "Premium Quality", description: "Assured craftsmanship" },
 ];
-
 function formatProduct(product) {
   const sizes = (product.variants || [])
     .filter((variant) => variant.isActive !== false)
@@ -41,18 +40,15 @@ function formatProduct(product) {
       (variant.sizes || []).filter((size) => size.isActive !== false)
     )
     .filter((size) => Number.isFinite(Number(size.price)));
-
   const lowestPricedSize = sizes.reduce((lowest, size) => {
     if (!lowest || Number(size.price) < Number(lowest.price)) {
       return size;
     }
     return lowest;
   }, null);
-
   const firstVariantImage = (product.variants || [])
     .find((variant) => variant.isActive !== false && variant.images?.length)
     ?.images?.[0];
-
   return {
     ...product,
     id: product._id,
@@ -64,11 +60,9 @@ function formatProduct(product) {
     to: `/product/${product.slug || product._id}`,
   };
 }
-
 export default function ProductDetails() {
   const { id } = useParams();
   const { addToCart } = useCart();
-
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,10 +77,8 @@ export default function ProductDetails() {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [wishlistActionLoading, setWishlistActionLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-
   useEffect(() => {
     let active = true;
-
     async function loadProduct() {
       setLoading(true);
       setLoadError("");
@@ -96,21 +88,15 @@ export default function ProductDetails() {
       setImageIndex(0);
       setQuantity(1);
       setAdded(false);
-
       try {
         const result = await getProductById(id);
-
         if (!active) return;
-
         if (!result) {
           setLoadError("Product not found.");
           return;
         }
-
         setProduct(formatProduct(result));
-
         const allProducts = await getProducts({ limit: 8 });
-
         if (active) {
           setRelatedProducts(
             (allProducts || [])
@@ -131,21 +117,16 @@ export default function ProductDetails() {
         if (active) setLoading(false);
       }
     }
-
     loadProduct();
-
     return () => {
       active = false;
     };
   }, [id]);
-
   useEffect(() => {
     let active = true;
-
     async function loadWishlist() {
       try {
         const items = await getWishlist();
-
         if (active) {
           setWishlistItems(Array.isArray(items) ? items : []);
         }
@@ -153,21 +134,16 @@ export default function ProductDetails() {
         if (active) setWishlistItems([]);
       }
     }
-
     loadWishlist();
-
     return () => {
       active = false;
     };
   }, []);
-
   const variants = useMemo(
     () => (product?.variants || []).filter((variant) => variant.isActive !== false),
     [product]
   );
-
   const selectedVariant = variants[variantIndex] || null;
-
   const sizes = useMemo(
     () =>
       (selectedVariant?.sizes || []).filter(
@@ -175,41 +151,30 @@ export default function ProductDetails() {
       ),
     [selectedVariant]
   );
-
   const selectedSize = sizes[sizeIndex] || null;
-
   const images = selectedVariant?.images?.length
     ? selectedVariant.images
     : [];
-
   const mainImage = images[imageIndex] || images[0] || "";
-
   const priceAUD = Number(selectedSize?.price ?? product?.priceAUD ?? 0);
-
   const compareAtAUD = Number(
     selectedSize?.compareAtPrice ?? product?.compareAtAUD ?? 0
   );
-
   const stock = Number(selectedSize?.stock ?? 0);
-
   const isInStock = Boolean(
     selectedSize && selectedSize.isActive !== false && stock > 0
   );
-
   const discount =
     compareAtAUD > priceAUD && compareAtAUD > 0
       ? Math.round((1 - priceAUD / compareAtAUD) * 100)
       : 0;
-
   const getReferenceId = (value) => {
     if (!value) return "";
     return typeof value === "object" ? value._id : value;
   };
-
   const wishlistIds = [
     ...new Set(wishlistItems.map((item) => getReferenceId(item.productId))),
   ];
-
   const isWishlistItem = (productId, variantId, sizeOptionId) =>
     wishlistItems.some(
       (item) =>
@@ -217,26 +182,21 @@ export default function ProductDetails() {
         getReferenceId(item.variantId) === variantId &&
         getReferenceId(item.sizeOptionId) === sizeOptionId
     );
-
   const wishlist = Boolean(
     product &&
       selectedVariant &&
       selectedSize &&
       isWishlistItem(product.id, selectedVariant._id, selectedSize._id)
   );
-
   const refreshWishlist = async () => {
     const items = await getWishlist();
     setWishlistItems(Array.isArray(items) ? items : []);
   };
-
   const handleToggleWishlist = async () => {
     if (!product || !selectedVariant || !selectedSize || wishlistActionLoading) {
       return;
     }
-
     setWishlistActionLoading(true);
-
     try {
       const existingItem = wishlistItems.find(
         (item) =>
@@ -244,7 +204,6 @@ export default function ProductDetails() {
           getReferenceId(item.variantId) === selectedVariant._id &&
           getReferenceId(item.sizeOptionId) === selectedSize._id
       );
-
       if (existingItem) {
         await removeWishlistItem(existingItem._id);
         setWishlistItems((current) =>
@@ -256,7 +215,6 @@ export default function ProductDetails() {
           variantId: selectedVariant._id,
           sizeOptionId: selectedSize._id,
         });
-
         await refreshWishlist();
       }
     } catch (error) {
@@ -271,25 +229,19 @@ export default function ProductDetails() {
       setWishlistActionLoading(false);
     }
   };
-
   const handleRelatedWishlist = async (item) => {
     if (wishlistActionLoading) return;
-
     const availableVariant = (item.variants || []).find(
       (variant) => variant.isActive !== false
     );
-
     const availableSize = availableVariant?.sizes?.find(
       (size) => size.isActive !== false && Number(size.stock) > 0
     );
-
     if (!availableVariant || !availableSize) {
       window.alert("This product currently has no available size.");
       return;
     }
-
     setWishlistActionLoading(true);
-
     try {
       const existingItem = wishlistItems.find(
         (savedItem) =>
@@ -297,7 +249,6 @@ export default function ProductDetails() {
           getReferenceId(savedItem.variantId) === availableVariant._id &&
           getReferenceId(savedItem.sizeOptionId) === availableSize._id
       );
-
       if (existingItem) {
         await removeWishlistItem(existingItem._id);
         setWishlistItems((current) =>
@@ -309,7 +260,6 @@ export default function ProductDetails() {
           variantId: availableVariant._id,
           sizeOptionId: availableSize._id,
         });
-
         await refreshWishlist();
       }
     } catch (error) {
@@ -324,7 +274,6 @@ export default function ProductDetails() {
       setWishlistActionLoading(false);
     }
   };
-
   const selectVariant = (index) => {
     setVariantIndex(index);
     setSizeIndex(0);
@@ -332,19 +281,15 @@ export default function ProductDetails() {
     setQuantity(1);
     setAdded(false);
   };
-
   const changeImage = (direction) => {
     if (!images.length) return;
-
     setImageIndex(
       (current) => (current + direction + images.length) % images.length
     );
   };
-
   const handleAddToCart = () => {
     if (!product || !selectedVariant || !selectedSize || !isInStock) return;
     if (quantity > stock) return;
-
     addToCart(
       {
         id: product.id,
@@ -364,10 +309,8 @@ export default function ProductDetails() {
       },
       quantity
     );
-
     setAdded(true);
   };
-
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -377,7 +320,6 @@ export default function ProductDetails() {
       setCopied(false);
     }
   };
-
   if (loading) {
     return (
       <main className="min-h-[60vh] bg-[#FAF8F3] px-5 py-24 text-center text-[#82776E]">
@@ -385,14 +327,12 @@ export default function ProductDetails() {
       </main>
     );
   }
-
   if (!product || loadError || !variants.length) {
     return (
       <main className="min-h-[60vh] bg-[#FAF8F3] px-5 py-24 text-center">
         <h1 className="font-serif text-3xl text-[#34251F]">
           {loadError || "Product not found"}
         </h1>
-
         <Link
           to="/shop"
           className="mt-6 inline-block bg-[#792431] px-7 py-3 text-sm text-white"
@@ -402,7 +342,6 @@ export default function ProductDetails() {
       </main>
     );
   }
-
   return (
     <main className="min-h-screen bg-[#FAF8F3] text-[#34251F]">
       <div className="mx-auto max-w-[1500px] px-4 pb-16 sm:px-7 lg:px-10">
@@ -424,7 +363,6 @@ export default function ProductDetails() {
             {product.name}
           </span>
         </nav>
-
         <section className="grid gap-8 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,1fr)] xl:gap-10">
           <div className="grid grid-cols-[58px_minmax(0,1fr)] gap-3 sm:grid-cols-[76px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[88px_minmax(0,1fr)]">
             <div className="flex flex-col gap-3">
@@ -448,7 +386,6 @@ export default function ProductDetails() {
                   />
                 </button>
               ))}
-
               {images.length > 1 && (
                 <div className="flex gap-1 mt-1">
                   <button
@@ -459,7 +396,6 @@ export default function ProductDetails() {
                   >
                     <ChevronLeft size={17} />
                   </button>
-
                   <button
                     type="button"
                     onClick={() => changeImage(1)}
@@ -471,7 +407,6 @@ export default function ProductDetails() {
                 </div>
               )}
             </div>
-
             <div className="relative min-w-0 self-start overflow-hidden rounded-md bg-[#EFE7DB]">
               {mainImage ? (
                 <img
@@ -485,7 +420,6 @@ export default function ProductDetails() {
                   No product image available
                 </div>
               )}
-
               {mainImage && (
                 <button
                   type="button"
@@ -496,7 +430,6 @@ export default function ProductDetails() {
                   <Maximize2 size={17} />
                 </button>
               )}
-
               {discount > 0 && (
                 <span className="absolute left-3 top-3 bg-[#D7AE3F] px-3 py-1.5 text-[10px] font-semibold tracking-wider text-white">
                   SALE
@@ -504,7 +437,6 @@ export default function ProductDetails() {
               )}
             </div>
           </div>
-
           <div className="min-w-0">
             <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_130px] lg:gap-6">
               <div className="min-w-0">
@@ -512,40 +444,33 @@ export default function ProductDetails() {
                   <span className="bg-[#D8B45A] px-2.5 py-1 text-[10px] font-semibold tracking-wider text-white">
                     {discount > 0 ? "SALE" : "NEW COLLECTION"}
                   </span>
-
                   <span className="text-[10px] uppercase tracking-[0.18em] text-[#9B8D7E]">
                     ADYA EXCLUSIVE
                   </span>
                 </div>
-
                 <h1 className="font-serif text-[30px] leading-[1.17] tracking-[-0.025em] text-[#38261F] sm:text-[36px] lg:text-[38px]">
                   {product.name}
                 </h1>
-
                 <div className="flex flex-wrap items-center gap-3 mt-5">
                   {compareAtAUD > priceAUD && (
                     <div className="text-lg text-[#B6AEA5] line-through">
                       <Price amountAUD={compareAtAUD} />
                     </div>
                   )}
-
                   <div className="text-xl font-semibold text-[#B68B2E]">
                     <Price amountAUD={priceAUD} />
                   </div>
-
                   {discount > 0 && (
                     <span className="rounded-md bg-[#F3E0D7] px-3 py-1.5 text-[11px] font-semibold text-[#8C3A36]">
                       {discount}% OFF
                     </span>
                   )}
                 </div>
-
                 <p className="mt-4 max-w-2xl text-[13px] leading-6 text-[#82776E]">
                   {product.description ||
                     `Discover the elegance of ${product.name}, thoughtfully selected for weddings, festive occasions and timeless celebrations.`}
                 </p>
               </div>
-
               <aside className="grid grid-cols-2 gap-4 border-t border-[#E9E0D5] pt-5 sm:grid-cols-4 lg:grid-cols-1 lg:gap-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-1">
                 {benefits.map(({ icon: Icon, title, description }) => (
                   <div key={title} className="flex items-start gap-2.5 lg:block">
@@ -566,13 +491,11 @@ export default function ProductDetails() {
                 ))}
               </aside>
             </div>
-
             <div className="mt-6 border-t border-[#E7DED2] pt-5">
               <div className="mb-3 flex items-center gap-3 text-[13px]">
                 <span className="font-medium">Color:</span>
                 <span className="text-[#75665A]">{selectedVariant.color}</span>
               </div>
-
               <div className="flex flex-wrap gap-3">
                 {variants.map((variant, index) => (
                   <button
@@ -601,7 +524,6 @@ export default function ProductDetails() {
                 ))}
               </div>
             </div>
-
             <div className="mt-6 border-t border-[#E7DED2] pt-5">
               <div className="mb-3 flex items-center gap-3 text-[13px]">
                 <span className="font-medium">Size:</span>
@@ -609,11 +531,9 @@ export default function ProductDetails() {
                   {selectedSize?.size || "Choose a size"}
                 </span>
               </div>
-
               <div className="flex flex-wrap gap-2">
                 {sizes.map((size, index) => {
                   const unavailable = Number(size.stock || 0) <= 0;
-
                   return (
                     <button
                       key={size._id}
@@ -638,7 +558,6 @@ export default function ProductDetails() {
                 })}
               </div>
             </div>
-
             <div className="mt-4 text-[12px] leading-6">
               <p>
                 <span className="inline-block w-[90px] font-medium">SKU:</span>
@@ -646,7 +565,6 @@ export default function ProductDetails() {
                   {selectedSize?.sku || "Not assigned"}
                 </span>
               </p>
-
               <p>
                 <span className="inline-block w-[90px] font-medium">
                   Availability:
@@ -656,7 +574,6 @@ export default function ProductDetails() {
                 </span>
               </p>
             </div>
-
             <div className="flex flex-wrap items-stretch gap-3 mt-6">
               <div className="flex h-11 shrink-0 items-center border border-[#D9CFC2] bg-white/50">
                 <button
@@ -668,11 +585,9 @@ export default function ProductDetails() {
                 >
                   <Minus size={14} />
                 </button>
-
                 <span className="text-sm text-center min-w-8 tabular-nums">
                   {quantity}
                 </span>
-
                 <button
                   type="button"
                   aria-label="Increase quantity"
@@ -687,7 +602,6 @@ export default function ProductDetails() {
                   <Plus size={14} />
                 </button>
               </div>
-
               <button
                 type="button"
                 onClick={handleAddToCart}
@@ -701,7 +615,6 @@ export default function ProductDetails() {
                     ? "Add to cart"
                     : "Out of stock"}
               </button>
-
               <button
                 type="button"
                 aria-label={wishlist ? "Remove from wishlist" : "Add to wishlist"}
@@ -720,13 +633,11 @@ export default function ProductDetails() {
                 />
               </button>
             </div>
-
             {added && (
               <p role="status" className="mt-3 text-xs text-[#39764A]">
                 Added to your shopping cart.
               </p>
             )}
-
             <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-3 text-[12px] text-[#67594E]">
               <button
                 type="button"
@@ -735,7 +646,6 @@ export default function ProductDetails() {
                 <Shuffle size={15} />
                 Add to compare
               </button>
-
               <button
                 type="button"
                 onClick={handleShare}
@@ -747,7 +657,6 @@ export default function ProductDetails() {
             </div>
           </div>
         </section>
-
         <section className="mt-12 border-b border-[#E7DED2] sm:mt-16">
           <div className="flex flex-wrap gap-x-7 gap-y-0 sm:gap-x-9">
             {[
@@ -770,7 +679,6 @@ export default function ProductDetails() {
             ))}
           </div>
         </section>
-
         <section className="grid gap-7 py-6 lg:grid-cols-[1.4fr_1fr] lg:items-center lg:gap-10">
           <div className="text-[13px] leading-6 text-[#82776E]">
             {activeTab === "description" && (
@@ -779,28 +687,48 @@ export default function ProductDetails() {
                   `This exquisite ${product.name} brings together traditional craftsmanship and timeless elegance. Its carefully selected design makes it a beautiful choice for weddings, festive celebrations and special occasions.`}
               </p>
             )}
-
             {activeTab === "information" && (
-              <div className="space-y-2">
-                <p>
-                  <span className="font-medium text-[#514137]">Product:</span>{" "}
-                  {product.name}
-                </p>
-                <p>
-                  <span className="font-medium text-[#514137]">Color:</span>{" "}
-                  {selectedVariant.color}
-                </p>
-                <p>
-                  <span className="font-medium text-[#514137]">Size:</span>{" "}
-                  {selectedSize?.size || "Not selected"}
-                </p>
-                <p>
-                  <span className="font-medium text-[#514137]">SKU:</span>{" "}
-                  {selectedSize?.sku || "Not assigned"}
-                </p>
+              <div className="overflow-hidden rounded-lg border border-[#E9E0D5]">
+                <div className="border-b border-[#E9E0D5] bg-[#F3EEE5] px-4 py-3">
+                  <h3 className="font-serif text-base text-[#38261F]">
+                    Product specifications
+                  </h3>
+                </div>
+                <div className="divide-y divide-[#E9E0D5]">
+                  {[
+                    ["Product", product.name],
+                    ["Color", selectedVariant?.color],
+                    ["Size", selectedSize?.size || "Not selected"],
+                    ["SKU", selectedSize?.sku || "Not assigned"],
+                    ...Object.entries(product.details || {})
+                      .filter(
+                        ([, value]) =>
+                          value !== null &&
+                          value !== undefined &&
+                          String(value).trim() !== ""
+                      )
+                      .map(([key, value]) => [
+                        key
+                          .replace(/([A-Z])/g, " $1")
+                          .replace(/^./, (character) => character.toUpperCase()),
+                        String(value)
+                      ])
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="grid grid-cols-[minmax(110px,0.8fr)_1.2fr] gap-4 px-4 py-3 text-[13px]"
+                    >
+                      <span className="font-medium text-[#514137]">
+                        {label}
+                      </span>
+                      <span className="text-[#82776E]">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
-
             {activeTab === "shipping" && (
               <p>
                 Shipping options and delivery estimates are confirmed at checkout.
@@ -810,7 +738,6 @@ export default function ProductDetails() {
               </p>
             )}
           </div>
-
           <div className="grid grid-cols-2 gap-5 rounded-md bg-[#F3EEE5] p-5 sm:grid-cols-4 lg:gap-3 lg:p-5">
             {[
               {
@@ -846,7 +773,7 @@ export default function ProductDetails() {
             ))}
           </div>
         </section>
-
+        <ReviewSection productId={product.id} />
         {relatedProducts.length > 0 && (
           <section className="mt-6">
             <div className="flex items-center gap-5 mb-6">
@@ -854,7 +781,6 @@ export default function ProductDetails() {
                 Related products
               </h2>
               <div className="h-px flex-1 bg-[#E7DED2]" />
-
               <div className="hidden gap-2 sm:flex">
                 <Link
                   to="/shop"
@@ -863,7 +789,6 @@ export default function ProductDetails() {
                 >
                   <ChevronLeft size={17} />
                 </Link>
-
                 <Link
                   to="/shop"
                   aria-label="View all products"
@@ -873,7 +798,6 @@ export default function ProductDetails() {
                 </Link>
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
               {relatedProducts.map((item) => (
                 <article key={item.id} className="min-w-0 group">
@@ -890,13 +814,11 @@ export default function ProductDetails() {
                         <div className="aspect-[3/4] w-full" />
                       )}
                     </Link>
-
                     {item.compareAtAUD > item.priceAUD && (
                       <span className="absolute left-2 top-2 bg-[#D7AE3F] px-2 py-1 text-[9px] font-semibold text-white sm:left-3 sm:top-3">
                         SALE
                       </span>
                     )}
-
                     <button
                       type="button"
                       aria-label={
@@ -917,21 +839,18 @@ export default function ProductDetails() {
                       />
                     </button>
                   </div>
-
                   <Link
                     to={item.to}
                     className="mt-3 block line-clamp-2 text-center font-serif text-[12px] leading-5 text-[#4A382E] transition hover:text-[#792431] sm:text-[13px]"
                   >
                     {item.name}
                   </Link>
-
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 text-[11px]">
                     {item.compareAtAUD > item.priceAUD && (
                       <span className="text-[#B6AEA5] line-through">
                         <Price amountAUD={item.compareAtAUD} />
                       </span>
                     )}
-
                     <span className="font-semibold text-[#B68B2E]">
                       <Price amountAUD={item.priceAUD} />
                     </span>
@@ -942,7 +861,6 @@ export default function ProductDetails() {
           </section>
         )}
       </div>
-
       {zoomOpen && mainImage && (
         <div
           role="dialog"
@@ -959,7 +877,6 @@ export default function ProductDetails() {
           >
             <X size={24} />
           </button>
-
           <button
             type="button"
             aria-label="Previous image"
@@ -971,14 +888,12 @@ export default function ProductDetails() {
           >
             <ArrowLeft size={21} />
           </button>
-
           <img
             src={mainImage}
             alt={product.name}
             className="max-h-[88vh] max-w-[85vw] object-contain"
             onClick={(event) => event.stopPropagation()}
           />
-
           <button
             type="button"
             aria-label="Next image"

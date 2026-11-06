@@ -8,7 +8,6 @@ export default function HeaderContact() {
     <div className="hidden items-start gap-8 xl:flex">
       <div className="flex flex-col gap-0.5">
         <span className="font-display text-lg font-semibold leading-tight text-ink">
-          {settings.callHeading}
         </span>
         <a
           href={`tel:${settings.phone.replace(/\s/g, "")}`}

@@ -75,30 +75,30 @@ export default function Home() {
       />
 
       {loading && (
-        <p className="py-8 text-center text-sm text-gray-500">
+        <p className="py-8 text-sm text-center text-gray-500">
           Loading products...
         </p>
       )}
 
       {error && (
-        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+        <p className="py-8 text-sm text-center text-red-600">{error}</p>
       )}
 
       <BrandStory />
       
       <ProductSection
-        eyebrow={homepage.collection.eyebrow}
-        title={homepage.collection.title}
-        description={homepage.collection.description}
+        eyebrow="LOVED CLASSICS"
+        title="Bestsellers"
+        description="Discover timeless pieces from the ADYA collection."
         products={bestsellers}
         linkTo="/shop"
-        linkLabel={homepage.collection.linkLabel}
+        linkLabel="Shop all sarees"
         tone="soft"
       />
 
       <SeasonalBanner />
       <TrustBenefits />
-      <Testimonials />
+      {/* <Testimonials /> */}
       <Newsletter />
     </div>
   );

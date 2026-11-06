@@ -140,13 +140,12 @@ export default function Invoice({ order, onBack }) {
         className="invoice-document bg-white p-5 text-[#242424] shadow-sm sm:p-10 lg:p-14"
       >
         <header className="flex flex-col justify-between gap-6 sm:flex-row sm:items-start">
-          <div>
-            <h1 className="font-serif text-4xl font-semibold tracking-[0.15em] text-[#8b7047]">
-              ADYA
-            </h1>
-            <p className="mt-1 text-xs tracking-[0.25em] text-[#8b7047]">
-              HERITAGE & ELEGANCE
-            </p>
+          <div className="flex items-center">
+            <img
+              src="/images/logo.png"
+              alt="ADYA Heritage & Elegance"
+              className="h-16 w-auto object-contain"
+            />
           </div>
 
           <div className="text-sm sm:text-right">
